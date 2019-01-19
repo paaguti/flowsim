@@ -85,6 +85,12 @@ Flags:  -T, --TOS string      Value of the DSCP field in the IP packets (valid i
 ## flowsim as a UDP sink
 
 ```
+
+## flowsim as a UDP sink
+
+In UDP sink mode, following options are available:
+
+```
 Usage:
   flowsim sink [flags]
 
@@ -95,3 +101,5 @@ Flags:
   -p, --port int    UDP port of the flowsim UDP sink (default 8081)
   -v, --verbose     Print per packet info
 ```
+
+Note that it makes no sense to set the DSCP in this mode and this option is therefore not present and that the default mode is to receive one flow and quit after printing the QoE statistics for that flow.
