@@ -20,11 +20,15 @@ go install
 
 # flowsim
 
-iperf3 is a good traffic generator, but it has its limitations. While developing `trafic`, an [issue](https://github.com/esnet/iperf/issues/768) regarding setting the total bytes transferred on a TCP stream was discovered. In order to accurately simulate web-short and ABR video streams, flowsin was developed. It follows the philosophy of iperf3 (server and client mode in one application).
+iperf3 is a good traffic generator, but it has its limitations. While developing [`trafic`](https://github.com/mami-project/trafic), an [issue](https://github.com/esnet/iperf/issues/768) regarding setting the total bytes transferred on a TCP stream was discovered. In order to accurately simulate web-short and ABR video streams, flowsin was developed. It follows the philosophy of iperf3 (server and client mode in one application).
+
+## flowsim and trafic
+
+I have started this independent github after the project supporting the initial development of trafic (and flowsim) finished. I intend to contribute back to the original trafic github while that is active.
 
 ## flowsim modes
 
-`flowsim` can be started as a TCP or QUIC server or client,  or as a UDP source or sink. It supports IPv4 and IPv6 addressing and sets the DSCP field in the IP header. By default, the server and sink modes use the IPv4 loopback address (`127.0.0.1`) by default. Interface addresses have to be set explicitly.
+`flowsim` can be started as a TCP or QUIC server or client,  or as a UDP source or sink. It supports IPv4 and IPv6 addressing and sets the DSCP field in the IP header of the packets it generates. By default, the server and sink modes use the IPv4 loopback address (`127.0.0.1`) by default. Interface addresses have to be set explicitly.
 
 ## flowsim as a TCP server
 
