@@ -12,7 +12,7 @@ Follow instructions at https://golang.org/doc/install
 
 ## Build and install
 
-If you clones this repository directly, i.e. not using `go get`
+If you cloned this repository directly, i.e. not using `go get`
 
 ```
 go install
