@@ -11,7 +11,7 @@ import (
 	"math/rand"
 
 	quic "github.com/lucas-clemente/quic-go"
-	common "github.com/mami-project/trafic/flowsim/common"
+	common "github.com/paaguti/flowsim/common"
 )
 
 func Client(ip string, port int, iter int, interval int, bunch int, dscp int) error {

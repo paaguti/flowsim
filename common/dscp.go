@@ -1,8 +1,12 @@
 package common
+
 // A dictionary to map DSCP labels to values
 // CAVEAT: Multiply by 4 to get the full TOS byte value
 
-import ("fmt")
+import (
+	"errors"
+	"fmt"
+)
 
 var dscpDict = map[string]int{
 	"CS0":  0,
@@ -49,5 +53,5 @@ func ToDscp(dscp int) (string, error) {
 			return k, nil
 		}
 	}
-	return -1, errors.New(fmt.Sprintf("Value %d not mapped to DSCP", dscp))
+	return "Undefined", errors.New(fmt.Sprintf("Value %d not mapped to DSCP", dscp))
 }

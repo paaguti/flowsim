@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 
-	common "github.com/mami-project/trafic/flowsim/common"
+	common "github.com/paaguti/flowsim/common"
 	"strconv"
 )
 

@@ -3,7 +3,7 @@ package udp
 import (
 	"bytes"
 	"encoding/binary"
-	common "github.com/mami-project/trafic/flowsim/common"
+	common "github.com/paaguti/flowsim/common"
 	"time"
 )
 

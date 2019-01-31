@@ -14,7 +14,7 @@ import (
 
 	"crypto/rand"
 
-	common "github.com/mami-project/trafic/flowsim/common"
+	common "github.com/paaguti/flowsim/common"
 )
 
 func matcher(cmd string) (string, string, string, error) {

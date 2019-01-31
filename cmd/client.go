@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	common "github.com/mami-project/trafic/flowsim/common"
-	"github.com/mami-project/trafic/flowsim/quic"
-	"github.com/mami-project/trafic/flowsim/tcp"
+	common "github.com/paaguti/flowsim/common"
+	"github.com/paaguti/flowsim/quic"
+	"github.com/paaguti/flowsim/tcp"
 	"github.com/spf13/cobra"
 )
 

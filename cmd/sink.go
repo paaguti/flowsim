@@ -2,8 +2,8 @@ package cmd
 
 import (
 	// "fmt"
-	common "github.com/mami-project/trafic/flowsim/common"
-	"github.com/mami-project/trafic/flowsim/udp"
+	common "github.com/paaguti/flowsim/common"
+	"github.com/paaguti/flowsim/udp"
 	"github.com/spf13/cobra"
 )
 

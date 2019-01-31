@@ -16,7 +16,7 @@ import (
 	"strconv"
 
 	quic "github.com/lucas-clemente/quic-go"
-	common "github.com/mami-project/trafic/flowsim/common"
+	common "github.com/paaguti/flowsim/common"
 )
 
 // Start a server that echos all data on the first stream opened by the client

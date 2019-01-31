@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net"
 	// "log"
-	common "github.com/mami-project/trafic/flowsim/common"
+	common "github.com/paaguti/flowsim/common"
 	"io"
 	"math/rand"
 	"strconv"
