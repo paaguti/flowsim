@@ -135,3 +135,16 @@ The TCP and QUIC client outputs results in JSON format:
 * `xferd`: effectively transferred bytes
 * `n`: sequence number
 
+The UDP sink also prints result in JSON format
+
+```
+{ 
+  "127.0.0.1:53025" : {
+    "Delay" :  "5875.82 us",
+    "Jitter" : "382.58 us",
+    "Loss" : "0",
+    "Reorder" : "0",
+    "Samples" : "60"
+   }
+}
+```
