@@ -15,6 +15,7 @@ import (
 type Transfer struct {
 	XferTime  time.Duration
 	XferBytes int
+	XferIter  int
 }
 
 func mkTransfer(conn *net.TCPConn, iter int, total int, tsize int, t time.Time) *Transfer {
@@ -31,6 +32,7 @@ func mkTransfer(conn *net.TCPConn, iter int, total int, tsize int, t time.Time) 
 	return &Transfer{
 		XferTime:  time.Since(t),
 		XferBytes: readBytes,
+		XferIter:  iter,
 	}
 }
 func Client(host string, port int, iter int, interval int, burst int, tos int) {
@@ -83,8 +85,9 @@ func Client(host string, port int, iter int, interval int, burst int, tos int) {
 					if i == len(times)-1 {
 						sep = ' '
 					}
-					fmt.Printf("    {\"time\" : \"%v\", \"xferd\" : \"%d\"}%c \n",
-						times[i].XferTime, times[i].XferBytes, sep)
+					fmt.Printf("    { \"time\" : \"%v\", \"xferd\" : \"%d\" , \"n\" : \"%d\"",
+						times[i].XferTime, times[i].XferBytes, times[i].XferIter)
+					fmt.Printf(" }%c \n", sep)
 				}
 				fmt.Printf("  ]\n}\n")
 				return
