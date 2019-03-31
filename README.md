@@ -107,3 +107,26 @@ Flags:
 ```
 
 Note that it makes no sense to set the DSCP in this mode and this option is therefore not present and that the default mode is to receive one flow and quit after printing the QoE statistics for that flow.
+
+## Output format
+
+The client outputs results in JSON format:
+
+```
+{
+  "burst" : "1048576",
+  "server" : "127.0.0.1:8081",
+  "start" : "2019-03-31T10:15:02+02:00",
+  "times": [
+    { "time" : "10.343846ms", "xferd" : "1048576" , "n" : "1" }, 
+    { "time" : "18.662231ms", "xferd" : "1048576" , "n" : "2" }, 
+    { "time" : "16.11958ms", "xferd" : "1048576" , "n" : "3" }, 
+    { "time" : "16.177647ms", "xferd" : "1048576" , "n" : "4" }, 
+    { "time" : "17.967623ms", "xferd" : "1048576" , "n" : "5" }, 
+    { "time" : "14.527681ms", "xferd" : "1048576" , "n" : "6" }  
+  ]
+}
+```
+burst: programmed burst size
+server: remote IP address
+start: start time in RFC format
