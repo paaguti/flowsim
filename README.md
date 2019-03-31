@@ -118,15 +118,16 @@ The client outputs results in JSON format:
   "server" : "127.0.0.1:8081",
   "start" : "2019-03-31T10:15:02+02:00",
   "times": [
-    { "time" : "10.343846ms", "xferd" : "1048576" , "n" : "1" }, 
-    { "time" : "18.662231ms", "xferd" : "1048576" , "n" : "2" }, 
-    { "time" : "16.11958ms", "xferd" : "1048576" , "n" : "3" }, 
-    { "time" : "16.177647ms", "xferd" : "1048576" , "n" : "4" }, 
-    { "time" : "17.967623ms", "xferd" : "1048576" , "n" : "5" }, 
-    { "time" : "14.527681ms", "xferd" : "1048576" , "n" : "6" }  
+    { "time" : "10.343846ms", "xferd" : "1048576" , "n" : "1" },
+    { "time" : "18.662231ms", "xferd" : "1048576" , "n" : "2" },
+    { "time" : "16.11958ms", "xferd" : "1048576" , "n" : "3" },
+    { "time" : "16.177647ms", "xferd" : "1048576" , "n" : "4" },
+    { "time" : "17.967623ms", "xferd" : "1048576" , "n" : "5" },
+    { "time" : "14.527681ms", "xferd" : "1048576" , "n" : "6" }
   ]
 }
 ```
-burst: programmed burst size
-server: remote IP address
-start: start time in RFC format
+
+* burst: programmed burst size
+* server: remote IP address
+* start: start time in RFC format
