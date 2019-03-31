@@ -110,7 +110,7 @@ Note that it makes no sense to set the DSCP in this mode and this option is ther
 
 ## Output format
 
-The client outputs results in JSON format:
+The TCP and QUIC client outputs results in JSON format:
 
 ```
 {
@@ -128,6 +128,10 @@ The client outputs results in JSON format:
 }
 ```
 
-* burst: programmed burst size
-* server: remote IP address
-* start: start time in RFC format
+* `burst`: programmed burst size
+* `server`: remote IP address
+* `start`: start time in RFC format
+* `time`: time needed to request and download
+* `xferd`: effectively transferred bytes
+* `n`: sequence number
+
