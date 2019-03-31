@@ -13,6 +13,7 @@ import (
 	// "os"
 
 	"crypto/rand"
+	"time"
 
 	common "github.com/paaguti/flowsim/common"
 )
@@ -38,7 +39,7 @@ func handleConn(conn *net.TCPConn) {
 			return
 		}
 		// output message received
-		fmt.Print("Message Received:", string(message))
+		fmt.Printf("Message received at %s: %s", time.Now().Format(time.RFC3339), string(message))
 
 		// Checked in the client
 		run, total, bunch, err = matcher(strings.ToUpper(string(message)))

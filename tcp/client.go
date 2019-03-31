@@ -7,22 +7,32 @@ import (
 	common "github.com/paaguti/flowsim/common"
 	"io"
 	"math/rand"
+	// "os"
 	"strconv"
 	"time"
 )
 
-func mkTransfer(conn *net.TCPConn, iter int, total int, tsize int, t time.Time) {
-	fmt.Printf("Launching at %v\n", t)
+type Transfer struct {
+	XferTime  time.Duration
+	XferBytes int
+}
+
+func mkTransfer(conn *net.TCPConn, iter int, total int, tsize int, t time.Time) *Transfer {
+	// fmt.Fprintf(os.Stderr, "Launching at %v\n", t)
 	// send to socket
 	fmt.Fprintf(conn, fmt.Sprintf("GET %d/%d %d\n", iter, total, tsize))
 	// listen for reply
 	readBuffer := make([]byte, tsize)
-	fmt.Printf("Trying to read %d bytes back...", len(readBuffer))
+	// fmt.Fprintf(os.Stderr, "Trying to read %d bytes back...", len(readBuffer))
 	readBytes, err := io.ReadFull(conn, readBuffer)
 	common.FatalError(err)
-	fmt.Printf("Effectively read %d bytes\n", readBytes)
-}
 
+	// fmt.Fprintf(os.Stderr, "Effectively read %d bytes\n", readBytes)
+	return &Transfer{
+		XferTime:  time.Since(t),
+		XferBytes: readBytes,
+	}
+}
 func Client(host string, port int, iter int, interval int, burst int, tos int) {
 
 	serverAddrStr := net.JoinHostPort(host, strconv.Itoa(port))
@@ -36,20 +46,25 @@ func Client(host string, port int, iter int, interval int, burst int, tos int) {
 		return
 	}
 	defer conn.Close()
-	fmt.Printf("Talking to %s\n", serverAddrStr)
+	// fmt.Fprintf(os.Stderr, "Talking to %s\n", serverAddrStr)
 
 	err = common.SetTcpTos(conn, tos)
 	common.FatalError(err)
 
-	// fmt.Printf("Starting at  %v\n", time.Now())
+	// fmt.Fprintf(os.Stderr,("Starting at  %v\n", time.Now())
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	initWait := r.Intn(interval*50) / 100.0
 	time.Sleep(time.Duration(initWait) * time.Second)
 
+	fmt.Printf("{\n  \"burst\" : \"%d\",\n  \"server\" : \"%s\",\n", burst, serverAddrStr)
+	fmt.Printf("  \"start\" : \"%s\",\n", time.Now().Format(time.RFC3339))
+	fmt.Printf("  \"times\": [\n")
+
+	times := make([]Transfer, iter)
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
 	defer ticker.Stop()
-	mkTransfer(conn, 1, iter, burst, time.Now())
-	currIter := 2
+	times[0] = *mkTransfer(conn, 1, iter, burst, time.Now())
+	currIter := 1
 
 	if iter > 1 {
 		done := make(chan bool, 1)
@@ -60,9 +75,18 @@ func Client(host string, port int, iter int, interval int, burst int, tos int) {
 				if currIter >= iter {
 					close(done)
 				}
-				mkTransfer(conn, currIter, iter, burst, t)
+				times[currIter-1] = *mkTransfer(conn, currIter, iter, burst, t)
 			case <-done:
-				fmt.Printf("Finished...\n\n")
+				// fmt.Fprintf(os.Stderr, "Finished...\n\n")
+				for i := range times {
+					sep := ','
+					if i == len(times)-1 {
+						sep = ' '
+					}
+					fmt.Printf("    {\"time\" : \"%v\", \"xferd\" : \"%d\"}%c \n",
+						times[i].XferTime, times[i].XferBytes, sep)
+				}
+				fmt.Printf("  ]\n}\n")
 				return
 			}
 		}
