@@ -4,16 +4,18 @@ import (
 	"fmt"
 	"net"
 	// "log"
+	"encoding/json"
 	common "github.com/paaguti/flowsim/common"
 	"io"
 	"math/rand"
-	// "os"
+	"os"
 	"strconv"
 	"time"
 )
 
 type Transfer struct {
-	XferTime  time.Duration
+	XferStart string
+	XferTime  string
 	XferBytes int
 	XferIter  int
 }
@@ -30,11 +32,20 @@ func mkTransfer(conn *net.TCPConn, iter int, total int, tsize int, t time.Time) 
 
 	// fmt.Fprintf(os.Stderr, "Effectively read %d bytes\n", readBytes)
 	return &Transfer{
-		XferTime:  time.Since(t),
+		XferStart: t.Format(time.RFC3339),
+		XferTime:  time.Since(t).String(),
 		XferBytes: readBytes,
 		XferIter:  iter,
 	}
 }
+
+type Result struct {
+	Burst  int
+	Server string
+	Start  string
+	Times  []Transfer
+}
+
 func Client(host string, port int, iter int, interval int, burst int, tos int) {
 
 	serverAddrStr := net.JoinHostPort(host, strconv.Itoa(port))
@@ -58,14 +69,16 @@ func Client(host string, port int, iter int, interval int, burst int, tos int) {
 	initWait := r.Intn(interval*50) / 100.0
 	time.Sleep(time.Duration(initWait) * time.Second)
 
-	fmt.Printf("{\n  \"burst\" : \"%d\",\n  \"server\" : \"%s\",\n", burst, serverAddrStr)
-	fmt.Printf("  \"start\" : \"%s\",\n", time.Now().Format(time.RFC3339))
-	fmt.Printf("  \"times\": [\n")
+	result := Result{
+		Burst:  burst,
+		Server: serverAddrStr,
+		Start:  time.Now().Format(time.RFC3339),
+		Times:  make([]Transfer, iter),
+	}
 
-	times := make([]Transfer, iter)
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
 	defer ticker.Stop()
-	times[0] = *mkTransfer(conn, 1, iter, burst, time.Now())
+	result.Times[0] = *mkTransfer(conn, 1, iter, burst, time.Now())
 	currIter := 1
 
 	if iter > 1 {
@@ -77,19 +90,15 @@ func Client(host string, port int, iter int, interval int, burst int, tos int) {
 				if currIter >= iter {
 					close(done)
 				}
-				times[currIter-1] = *mkTransfer(conn, currIter, iter, burst, t)
+				result.Times[currIter-1] = *mkTransfer(conn, currIter, iter, burst, t)
 			case <-done:
 				// fmt.Fprintf(os.Stderr, "Finished...\n\n")
-				for i := range times {
-					sep := ','
-					if i == len(times)-1 {
-						sep = ' '
-					}
-					fmt.Printf("    { \"time\" : \"%v\", \"xferd\" : \"%d\" , \"n\" : \"%d\"",
-						times[i].XferTime, times[i].XferBytes, times[i].XferIter)
-					fmt.Printf(" }%c \n", sep)
+				b, err := json.MarshalIndent(result, " ", " ")
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %s\n", err)
 				}
-				fmt.Printf("  ]\n}\n")
+				os.Stdout.Write(b)
+				fmt.Println()
 				return
 			}
 		}

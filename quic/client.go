@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"os"
 	"strconv"
 	"time"
 
 	"crypto/tls"
+	"encoding/json"
 	"math/rand"
 
 	quic "github.com/lucas-clemente/quic-go"
@@ -15,9 +17,17 @@ import (
 )
 
 type Transfer struct {
-	XferTime  time.Duration
+	XferStart string
+	XferTime  string
 	XferBytes int
 	XferIter  int
+}
+
+type Result struct {
+	Burst  int
+	Server string
+	Start  string
+	Times  []Transfer
 }
 
 func Client(ip string, port int, iter int, interval int, bunch int, dscp int) error {
@@ -59,14 +69,16 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 	initWait := r.Intn(interval*50) / 100.0
 	time.Sleep(time.Duration(initWait) * time.Second)
 
-	fmt.Printf("{\n  \"burst\" : \"%d\",\n  \"server\" : \"%s\",\n", bunch, addr)
-	fmt.Printf("  \"start\" : \"%s\",\n", time.Now().Format(time.RFC3339))
-	fmt.Printf("  \"times\": [\n")
+	result := Result{
+		Burst:  bunch,
+		Server: addr,
+		Start:  time.Now().Format(time.RFC3339),
+		Times:  make([]Transfer, iter),
+	}
 
-	times := make([]Transfer, iter)
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
 	defer ticker.Stop()
-	times[0] = *mkTransfer(stream, buf, 1, iter, time.Now())
+	result.Times[0] = *mkTransfer(stream, buf, 1, iter, time.Now())
 	currIter := 1
 
 	if iter > 1 {
@@ -78,18 +90,14 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 				if currIter >= iter {
 					close(done)
 				}
-				times[currIter-1] = *mkTransfer(stream, buf, currIter, iter, t)
+				result.Times[currIter-1] = *mkTransfer(stream, buf, currIter, iter, t)
 			case <-done:
-				for i := range times {
-					sep := ','
-					if i == len(times)-1 {
-						sep = ' '
-					}
-					fmt.Printf("    {\"time\" : \"%v\", \"xferd\" : \"%d\", \"n\" : \"%d\"",
-						times[i].XferTime, times[i].XferBytes, times[i].XferIter)
-					fmt.Printf("}%c \n", sep)
+				b, err := json.MarshalIndent(result, " ", " ")
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %s\n", err)
 				}
-				fmt.Printf("  ]\n}\n")
+				os.Stdout.Write(b)
+				fmt.Println()
 				// fmt.Printf("\nFinished...\n\n")
 				return nil
 			}
@@ -112,7 +120,8 @@ func mkTransfer(stream quic.Stream, buf []byte, current int, iter int, t time.Ti
 	common.FatalError(err)
 	// fmt.Printf("Client: Got %d bytes back\n", n)
 	return &Transfer{
-		XferTime:  time.Since(t),
+		XferStart: t.Format(time.RFC3339),
+		XferTime:  time.Since(t).String(),
 		XferBytes: n,
 		XferIter:  current,
 	}
