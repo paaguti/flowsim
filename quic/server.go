@@ -113,7 +113,7 @@ func parseCmd(strb string) ([]byte, bool, error) {
 		nb := make([]byte, bunch, bunch)
 		_, err := rand.Read(nb)
 		if err != nil {
-			fmt.Println("ERROR while filling random buffer: ", err)
+			log.Printf("ERROR while filling random buffer: %s\n", err)
 			return nil, iter == total, err
 		}
 		fmt.Printf("Sending %d bytes\n", len(nb))

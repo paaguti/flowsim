@@ -2,20 +2,19 @@ package udp
 
 import (
 	"fmt"
-	// TODO, ftmb all is handled with print
-	// "encoding/json"
+	common "github.com/paaguti/flowsim/common"
 )
 
 type Stats struct {
-	lastdelay  int
-	mdelay     int
-	mjitter    int
-	samples    int
+	lastdelay int
+	mdelay    int
+	mjitter   int
+	samples   int
 
 	lastsample int
 	loss       int
 
-	reorder    int
+	reorder int
 }
 
 // stats:    structure holding the statistics
@@ -27,14 +26,14 @@ func AddSample(stats *Stats, delay int, nsample int) *Stats {
 	diff := nsample - stats.lastsample
 	if diff >= 0 {
 		// if diff == 0 ==> repeated packet??
-		if diff > 1  {
+		if diff > 1 {
 			stats.loss += diff - 1
 		} // else diff == 1 ==> OK
 
 		stats.lastsample = nsample
 	} else {
-		stats.loss --
-		stats.reorder ++
+		stats.loss--
+		stats.reorder++
 	}
 
 	stats.mdelay += delay
@@ -49,7 +48,7 @@ func AddSample(stats *Stats, delay int, nsample int) *Stats {
 			stats.mjitter += delay - stats.lastdelay
 		}
 	}
-	stats.samples ++
+	stats.samples++
 	stats.lastdelay = delay
 	// fmt.Printf("after: stats = %v\n", stats)
 	return stats
@@ -58,12 +57,24 @@ func AddSample(stats *Stats, delay int, nsample int) *Stats {
 //
 // TODO Generate this using the JSON libraries
 //
+
+type PrtStats struct {
+	Peer    string
+	Delay   string
+	Jitter  string
+	Loss    int
+	Reorder int
+	Samples int
+}
+
 func PrintStats(addr string, stats *Stats, unit string) {
-	fmt.Printf(" { \"%s\" : {\n", addr)
-	fmt.Printf("   \"Delay\" :  \"%6.2f %s\",\n", float64(stats.mdelay) / float64(stats.samples), unit)
-	fmt.Printf("   \"Jitter\" : \"%6.2f %s\",\n", float64(stats.mjitter) / float64(stats.samples - 1), unit)
-	fmt.Printf("   \"Loss\" : \"%d\",\n", stats.loss)
-	fmt.Printf("   \"Reorder\" : \"%d\",\n", stats.reorder )
-	fmt.Printf("   \"Samples\" : \"%d\"\n", stats.samples)
-	fmt.Printf("\n   }\n  }\n")
+
+	common.PrintJSon(PrtStats{
+		Peer:    addr,
+		Delay:   fmt.Sprintf("%6.2f %s", float64(stats.mdelay)/float64(stats.samples), unit),
+		Jitter:  fmt.Sprintf("%6.2f %s", float64(stats.mjitter)/float64(stats.samples), unit),
+		Loss:    stats.loss,
+		Reorder: stats.reorder,
+		Samples: stats.samples,
+	})
 }

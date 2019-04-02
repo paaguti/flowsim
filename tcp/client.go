@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"net"
 	// "log"
-	"encoding/json"
 	common "github.com/paaguti/flowsim/common"
 	"io"
 	"math/rand"
-	"os"
 	"strconv"
 	"time"
 )
@@ -93,13 +91,7 @@ func Client(host string, port int, iter int, interval int, burst int, tos int) {
 				result.Times[currIter-1] = *mkTransfer(conn, currIter, iter, burst, t)
 			case <-done:
 				// fmt.Fprintf(os.Stderr, "Finished...\n\n")
-				b, err := json.MarshalIndent(result, " ", " ")
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error: %s\n", err)
-				}
-				os.Stdout.Write(b)
-				fmt.Println()
-				return
+				common.PrintJSon(result)
 			}
 		}
 	}

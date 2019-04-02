@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"os"
 	"strconv"
 	"time"
 
 	"crypto/tls"
-	"encoding/json"
 	"math/rand"
 
 	quic "github.com/lucas-clemente/quic-go"
@@ -92,12 +90,7 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 				}
 				result.Times[currIter-1] = *mkTransfer(stream, buf, currIter, iter, t)
 			case <-done:
-				b, err := json.MarshalIndent(result, " ", " ")
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error: %s\n", err)
-				}
-				os.Stdout.Write(b)
-				fmt.Println()
+				common.PrintJSon(result)
 				// fmt.Printf("\nFinished...\n\n")
 				return nil
 			}
