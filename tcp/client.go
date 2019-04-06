@@ -38,10 +38,11 @@ func mkTransfer(conn *net.TCPConn, iter int, total int, tsize int, t time.Time) 
 }
 
 type Result struct {
-	Burst  int
-	Server string
-	Start  string
-	Times  []Transfer
+	Protocol string
+	Server   string
+	Burst    int
+	Start    string
+	Times    []Transfer
 }
 
 func Client(host string, port int, iter int, interval int, burst int, tos int) {
@@ -68,10 +69,11 @@ func Client(host string, port int, iter int, interval int, burst int, tos int) {
 	time.Sleep(time.Duration(initWait) * time.Second)
 
 	result := Result{
-		Burst:  burst,
-		Server: serverAddrStr,
-		Start:  time.Now().Format(time.RFC3339),
-		Times:  make([]Transfer, iter),
+		Protocol: "TCP",
+		Server:   serverAddrStr,
+		Burst:    burst,
+		Start:    time.Now().Format(time.RFC3339),
+		Times:    make([]Transfer, iter),
 	}
 
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)

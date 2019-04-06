@@ -22,10 +22,11 @@ type Transfer struct {
 }
 
 type Result struct {
-	Burst  int
-	Server string
-	Start  string
-	Times  []Transfer
+	Protocol string
+	Server   string
+	Burst    int
+	Start    string
+	Times    []Transfer
 }
 
 func Client(ip string, port int, iter int, interval int, bunch int, dscp int) error {
@@ -68,10 +69,11 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 	time.Sleep(time.Duration(initWait) * time.Second)
 
 	result := Result{
-		Burst:  bunch,
-		Server: addr,
-		Start:  time.Now().Format(time.RFC3339),
-		Times:  make([]Transfer, iter),
+		Protocol: "QUIC",
+		Server:   addr,
+		Burst:    bunch,
+		Start:    time.Now().Format(time.RFC3339),
+		Times:    make([]Transfer, iter),
 	}
 
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)

@@ -55,26 +55,28 @@ func AddSample(stats *Stats, delay int, nsample int) *Stats {
 }
 
 //
-// TODO Generate this using the JSON libraries
+// Generate the statistics as JSON
 //
 
 type PrtStats struct {
-	Peer    string
-	Delay   string
-	Jitter  string
-	Loss    int
-	Reorder int
-	Samples int
+	Protocol string
+	Peer     string
+	Delay    string
+	Jitter   string
+	Loss     int
+	Reorder  int
+	Samples  int
 }
 
 func PrintStats(addr string, stats *Stats, unit string) {
 
 	common.PrintJSon(PrtStats{
-		Peer:    addr,
-		Delay:   fmt.Sprintf("%6.2f %s", float64(stats.mdelay)/float64(stats.samples), unit),
-		Jitter:  fmt.Sprintf("%6.2f %s", float64(stats.mjitter)/float64(stats.samples), unit),
-		Loss:    stats.loss,
-		Reorder: stats.reorder,
-		Samples: stats.samples,
+		Protocol: "UDP",
+		Peer:     addr,
+		Delay:    fmt.Sprintf("%6.2f%s", float64(stats.mdelay)/float64(stats.samples), unit),
+		Jitter:   fmt.Sprintf("%6.2f%s", float64(stats.mjitter)/float64(stats.samples), unit),
+		Loss:     stats.loss,
+		Reorder:  stats.reorder,
+		Samples:  stats.samples,
 	})
 }
