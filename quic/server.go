@@ -1,6 +1,7 @@
 package quic
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/tls"
@@ -44,7 +45,7 @@ func Server(ip string, port int, single bool, dscp int) error {
 	}
 
 	for {
-		sess, err := listener.Accept()
+		sess, err := listener.Accept(context.Background())
 		if common.FatalError(err) != nil {
 			return err
 		}
@@ -59,7 +60,7 @@ func Server(ip string, port int, single bool, dscp int) error {
 func quicHandler(sess quic.Session) error {
 
 	// fmt.Println("Entering quicHandler")
-	stream, err := sess.AcceptStream()
+	stream, err := sess.AcceptStream(context.Background())
 	if common.FatalError(err) != nil {
 		return err
 	}

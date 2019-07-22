@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"context"
 	"crypto/tls"
 	"math/rand"
 
@@ -60,7 +61,7 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 
 	// fmt.Printf("Opened session for %s\n", addr)
 	buf := make([]byte, bunch)
-	stream, err := session.OpenStreamSync()
+	stream, err := session.OpenStreamSync(context.Background())
 	if common.FatalError(err) != nil {
 		return err
 	}
