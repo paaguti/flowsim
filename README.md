@@ -8,11 +8,13 @@ A UNIX or UNIX-like OS
 
 ### Go
 
-Follow instructions at https://golang.org/doc/install
+`flowsim` depends on `quic-go`   , which now depends on golang-1.13. Follow instructions at https://golang.org/doc/install.
+
+* *Note*: installing an official binary distribution is recommended
 
 ## Build and install
 
-If you cloned this repository directly, i.e. not using `go get`
+Clone this repository under `$HOME/go/src/github.com/paaguti` and then
 
 ```
 go install
@@ -138,7 +140,7 @@ The TCP and QUIC client outputs results in JSON format:
 The UDP sink also prints result in JSON format
 
 ```
-{ 
+{
   "127.0.0.1:53025" : {
     "Delay" :  "5875.82 us",
     "Jitter" : "382.58 us",
