@@ -7,12 +7,16 @@ import (
 	"strconv"
 	"time"
 
-	"context"
+	// "context"
 	"crypto/tls"
 	"math/rand"
 
-	quic "github.com/lucas-clemente/quic-go"
+	// use the fork with the Spinbit and VEC implementation
+	// I have forked ferrieux/quic-go to keep a stable version
+	//
+	// quic "github.com/lucas-clemente/quic-go"
 	common "github.com/paaguti/flowsim/common"
+	quic "github.com/paaguti/quic-go"
 )
 
 type Transfer struct {
@@ -61,7 +65,12 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 
 	// fmt.Printf("Opened session for %s\n", addr)
 	buf := make([]byte, bunch)
-	stream, err := session.OpenStreamSync(context.Background())
+	// This is for the latest version of quic-go
+	// stream, err := session.OpenStreamSync(context.Background())
+	//
+	// revert to get the spin bit running
+	//
+	stream, err := session.OpenStreamSync()
 	if common.FatalError(err) != nil {
 		return err
 	}

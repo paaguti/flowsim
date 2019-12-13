@@ -17,7 +17,7 @@ var serverIpv6 bool
 
 var serverCmd = &cobra.Command{
 	Use:   "server",
-	Short: "Start a flowsim TCP/QUIC server",
+	Short: "Start a flowsim TCP or QUIC server",
 	Long: `Start an TCP or QUIC ABR server.
 It will basically sit there and wait for the client to request bunches of data
 over a TCP or QUIC connection

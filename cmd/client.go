@@ -20,7 +20,7 @@ var clientIpv6 bool
 // clientCmd represents the client command
 var clientCmd = &cobra.Command{
 	Use:   "client",
-	Short: "Start a flowsim TCP/QUIC client",
+	Short: "Start a flowsim TCP or QUIC client",
 	Long: `Will run flowsim in client mode
 and try to talk to a flowsim server.
 CAVEAT: Select QUIC mode to talk to a flowsim server in QUIC mode`,
