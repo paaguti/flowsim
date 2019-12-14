@@ -57,7 +57,10 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 		return err
 	}
 
-	session, err := quic.Dial(udpConn, updAddr, addr, &tls.Config{InsecureSkipVerify: true}, nil)
+	// config := quic.PopulateClientConfig(nil, false)
+
+	session, err := quic.Dial(udpConn, updAddr, addr, &tls.Config{InsecureSkipVerify: true},
+		nil)
 	if common.FatalError(err) != nil {
 		return err
 	}
