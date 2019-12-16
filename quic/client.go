@@ -57,10 +57,14 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 		return err
 	}
 
+	var config *quic.Config
+
+	config = &quic.Config{Versions: []quic.VersionNumber{quic.VersionGQUIC43}}
+
 	// config := quic.PopulateClientConfig(nil, false)
 
 	session, err := quic.Dial(udpConn, updAddr, addr, &tls.Config{InsecureSkipVerify: true},
-		nil)
+		config)
 	if common.FatalError(err) != nil {
 		return err
 	}
