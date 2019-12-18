@@ -1,6 +1,6 @@
 # flowsim
 
-A flexible IP traffic generator, originally developed in the scope of https://github.com/mami-project/trafic
+A flexible IP traffic generator, originally developed in the scope of https://github.com/mami-project/trafic and heavily modified as a pet project afterwards
 
 ## Dependencies
 
@@ -8,16 +8,29 @@ A UNIX or UNIX-like OS
 
 ### Go
 
-`flowsim` depends on `quic-go`   , which now depends on golang-1.13. Follow instructions at https://golang.org/doc/install.
+`flowsim` depends on golang-1.13. Follow instructions at https://golang.org/doc/install. We use the modules feature to be able to fix the release of the quic-go fork we want to use.
 
 * *Note*: installing an official binary distribution is recommended
 
+### quic-go
+
+`flowsim` depends on https://github.com/ferrieux/quic-go (v0.7.7), a specfically tuned fork of the `spinvec` branch of https://github.com/ferrieux/quic-go, which, in turn is a fork of https://github.com/lucas-clemente/quic-go. We need this specific version, because it implements the spinbit.
+
+
 ## Build and install
 
-Clone this repository under `$HOME/go/src/github.com/paaguti` and then
+Clone this repository under `$HOME/go/src/github.com/paaguti`:
 
 ```
-go install
+git clone https://github.com/paaguti/flowsim
+cd flowsim/
+go test
+# Ignore the message:
+# ?   	github.com/paaguti/flowsim	[no test files]
+# The important thing is that all dependencies are installed
+#
+go build .
+go install .
 ```
 
 # flowsim
@@ -32,7 +45,7 @@ I have started this independent github after the project supporting the initial 
 
 `flowsim` can be started as a TCP or QUIC server or client,  or as a UDP source or sink. It supports IPv4 and IPv6 addressing and sets the DSCP field in the IP header of the packets it generates. By default, the server and sink modes use the IPv4 loopback address (`127.0.0.1`) by default. Interface addresses have to be set explicitly.
 
-## flowsim as a TCP server
+## flowsim as a TCP or QUIC server
 
 Once started as a server, `flowsim` will basically sit there and wait for the client to request bunches of data over a TCP connection.
 
@@ -53,7 +66,7 @@ Note in the normal mode, `flowsim` will be executed until killed with a `SIGINT`
 
 The size of the TCP PDU served and the moment where a connection is closed are determined by the client.
 
-## flowsim as a TCP client
+## flowsim as a TCP or QUIC client
 
 When `flowsim` is started as a client, a number of TCP segments with a fixed size will be requested from the server. All segments will be served over the same TCP connection, which is closed afterwards.
 
