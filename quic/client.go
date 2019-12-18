@@ -11,11 +11,12 @@ import (
 	"crypto/tls"
 	"math/rand"
 
+	common "github.com/paaguti/flowsim/common"
+	//
 	// use the fork with the Spinbit and VEC implementation
 	// I have forked ferrieux/quic-go to keep a stable version
 	//
-	// quic "github.com/lucas-clemente/quic-go"
-	common "github.com/paaguti/flowsim/common"
+	// quic "github.com/ferrieux/quic-go"
 	quic "github.com/paaguti/quic-go"
 )
 
@@ -59,7 +60,7 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 
 	var config *quic.Config
 
-	config = &quic.Config{Versions: []quic.VersionNumber{quic.VersionGQUIC43}}
+	config = &quic.Config{Versions: []quic.VersionNumber{quic.VersionGQUIC39}}
 
 	// config := quic.PopulateClientConfig(nil, false)
 
@@ -68,7 +69,7 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 	if common.FatalError(err) != nil {
 		return err
 	}
-	defer session.Close()
+	defer session.Close(err)
 
 	// fmt.Printf("Opened session for %s\n", addr)
 	buf := make([]byte, bunch)
