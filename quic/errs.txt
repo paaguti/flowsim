@@ -1,0 +1,10 @@
+# github.com/paaguti/flowsim/quic
+quic/client.go:63:39: not enough arguments in call to session.OpenStreamSync
+	have ()
+	want (context.Context)
+quic/server.go:47:31: not enough arguments in call to listener.Accept
+	have ()
+	want (context.Context)
+quic/server.go:62:34: not enough arguments in call to sess.AcceptStream
+	have ()
+	want (context.Context)
