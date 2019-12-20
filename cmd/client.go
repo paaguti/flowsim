@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	common "github.com/paaguti/flowsim/common"
+	"github.com/paaguti/flowsim/http"
 	"github.com/paaguti/flowsim/quic"
 	"github.com/paaguti/flowsim/tcp"
 	"github.com/spf13/cobra"
@@ -15,15 +16,16 @@ var clientIter int
 var clientTos string
 var clientBurst string
 var clientQuic bool
+var clientHttp bool
 var clientIpv6 bool
 
 // clientCmd represents the client command
 var clientCmd = &cobra.Command{
 	Use:   "client",
-	Short: "Start a flowsim TCP or QUIC client",
+	Short: "Start a flowsim TCP, HTTP or QUIC client",
 	Long: `Will run flowsim in client mode
 and try to talk to a flowsim server.
-CAVEAT: Select QUIC mode to talk to a flowsim server in QUIC mode`,
+CAVEAT: flowsim server and client mode have be in the same mode.`,
 
 	Run: func(cmd *cobra.Command, args []string) {
 
@@ -39,6 +41,8 @@ CAVEAT: Select QUIC mode to talk to a flowsim server in QUIC mode`,
 		common.FatalError(err)
 		if clientQuic {
 			quic.Client(useIp, clientPort, clientIter, clientInterval, burstSize, tos*4)
+		} else if clientHttp {
+			http.Client(useIp, clientPort, clientIter, clientInterval, burstSize, tos*4)
 		} else {
 			tcp.Client(useIp, clientPort, clientIter, clientInterval, burstSize, tos*4)
 		}
@@ -55,5 +59,6 @@ func init() {
 	clientCmd.PersistentFlags().StringVarP(&clientBurst, "burst", "N", "1M", "Size of each burst (as x(.xxx)?[kmgtKMGT]?)")
 	clientCmd.PersistentFlags().StringVarP(&clientTos, "TOS", "T", "CS0", "Value of the DSCP field in the IP packets (valid int or DSCP-Id)")
 	clientCmd.PersistentFlags().BoolVarP(&clientQuic, "quic", "Q", false, "Use QUIC (default is TCP)")
+	clientCmd.PersistentFlags().BoolVarP(&clientHttp, "http", "H", false, "Use HTTP (default is TCP)")
 	clientCmd.PersistentFlags().BoolVarP(&clientIpv6, "ipv6", "6", false, "Use IPv6 (default is IPv4)")
 }
