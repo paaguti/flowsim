@@ -46,6 +46,11 @@ func UdpFamily(ip string) (string, error) {
 
 func FirstIP(host string, ipv6 bool) (string, error) {
 
+	if ipv6 {
+		if host == "localhost" {
+			host = "ip6-" + host
+		}
+	}
 	ips, err := net.LookupIP(host)
 	if err == nil {
 		for _, ip := range ips {
