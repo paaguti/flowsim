@@ -45,9 +45,9 @@ I have started this independent github after the project supporting the initial 
 
 `flowsim` can be started as a TCP or QUIC server or client,  or as a UDP source or sink. It supports IPv4 and IPv6 addressing and sets the DSCP field in the IP header of the packets it generates. By default, the server and sink modes use the IPv4 loopback address (`127.0.0.1`) by default. Interface addresses have to be set explicitly.
 
-## flowsim as a TCP or QUIC server
+## flowsim as a server
 
-Once started as a server, `flowsim` will basically sit there and wait for the client to request bunches of data over a TCP connection.
+Once started as a server, `flowsim` will basically sit there and wait for the client to request bunches of data over a raw TCP, raw QUIC or HTTP connection.
 
 ```
 Usage:
@@ -56,19 +56,21 @@ Usage:
 Flags:
   -T, --TOS string   Value of the DSCP field in the IP layer (number or DSCP id) (default "CS0")
   -h, --help         help for server
-  -I, --ip string    IP address or host name bound to the flowsim server (default "127.0.0.1")
+  -H, --http         Use HTTP (default is TCP)
+  -I, --ip string    IP address or host name bound to the flowsim server (default "localhost")
+  -6, --ipv6         Use IPv6 (default is IPv4)
   -1, --one-off      Just accept one connection and quit (default is run until killed)
   -p, --port int     TCP port bound to the flowsim server (default 8081)
   -Q, --quic         Use QUIC (default is TCP)
 ```
 
-Note in the normal mode, `flowsim` will be executed until killed with a `SIGINT` sinal (i.e. `Control-C` from the keyboard). The `--one-off` option will make `flowsim` quit after a flow has been served.
+Note in the normal mode, `flowsim` will be executed until killed with a `SIGINT` signal (i.e. `Control-C` from the keyboard). The `--one-off` option will make `flowsim` quit after one experiment has been served.
 
-The size of the TCP PDU served and the moment where a connection is closed are determined by the client.
+The size of the PDU served and the moment where a connection is closed are determined by the client.
 
 ## flowsim as a TCP or QUIC client
 
-When `flowsim` is started as a client, a number of TCP segments with a fixed size will be requested from the server. All segments will be served over the same TCP connection, which is closed afterwards.
+When `flowsim` is started as a client, fixed size segments will be requested from the server over a raw TCP, raw QUIC or HTTP connections. In raw mode, all segments will be served over the same connection, which is closed afterwards. In HTTP mode, a string with random characters will be requested and each request goes over its own connection.
 
 ```
 Usage:
@@ -78,6 +80,7 @@ Flags:
   -T, --TOS string     Value of the DSCP field in the IP packets (valid int or DSCP-Id) (default "CS0")
   -N, --burst string   Size of each burst (as x(.xxx)?[kmgtKMGT]?) (default "1M")
   -h, --help           help for client
+  -H, --http           Use HTTP (default is TCP)
   -t, --interval int   Interval in secs between bursts (default 10)
   -I, --ip string      IP address or host name of the flowsim server to talk to (default "127.0.0.1")
   -n, --iter int       Number of bursts (default 6)
@@ -86,6 +89,10 @@ Flags:
 ```
 
 ## flowsim as a UDP source
+
+flowsim can also be used to produce raw UDP connections. Then, you will need a source and a sink.
+
+In UDP source mode, following options are available:
 
 ```
 Usage:
