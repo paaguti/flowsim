@@ -7,6 +7,7 @@ import (
 	common "github.com/paaguti/flowsim/common"
 	"io"
 	"math/rand"
+	// "os"
 	"strconv"
 	"time"
 )
@@ -94,6 +95,7 @@ func Client(host string, port int, iter int, interval int, burst int, tos int) {
 			case <-done:
 				// fmt.Fprintf(os.Stderr, "Finished...\n\n")
 				common.PrintJSon(result)
+				return
 			}
 		}
 	}
