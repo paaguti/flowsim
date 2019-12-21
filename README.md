@@ -31,6 +31,8 @@ go test
 #
 go build .
 go install .
+
+./mk_cert.sh
 ```
 
 # flowsim
@@ -43,11 +45,11 @@ I have started this independent github after the project supporting the initial 
 
 ## flowsim modes
 
-`flowsim` can be started as a TCP or QUIC server or client,  or as a UDP source or sink. It supports IPv4 and IPv6 addressing and sets the DSCP field in the IP header of the packets it generates. By default, the server and sink modes use the IPv4 loopback address (`127.0.0.1`) by default. Interface addresses have to be set explicitly.
+`flowsim` can be started as a HTTP, HTTPS, raw TCP or raw QUIC server or client,  or as a UDP source or sink. It supports IPv4 and IPv6 addressing and sets the DSCP field in the IP header of the packets it generates. By default, the server and sink modes use the IPv4 loopback address (`127.0.0.1`) by default. Interface addresses have to be set explicitly.
 
 ## flowsim as a server
 
-Once started as a server, `flowsim` will basically sit there and wait for the client to request bunches of data over a raw TCP, raw QUIC or HTTP connection.
+Once started as a server, `flowsim` will basically sit there and wait for the client to request bunches of data over a raw TCP, raw QUIC, HTTP or HTTPS connection.
 
 ```
 Usage:
@@ -57,6 +59,7 @@ Flags:
   -T, --TOS string   Value of the DSCP field in the IP layer (number or DSCP id) (default "CS0")
   -h, --help         help for server
   -H, --http         Use HTTP (default is TCP)
+  -S, --https        Use HTTPS (default is TCP)
   -I, --ip string    IP address or host name bound to the flowsim server (default "localhost")
   -6, --ipv6         Use IPv6 (default is IPv4)
   -1, --one-off      Just accept one connection and quit (default is run until killed)
@@ -70,7 +73,7 @@ The size of the PDU served and the moment where a connection is closed are deter
 
 ## flowsim as a TCP or QUIC client
 
-When `flowsim` is started as a client, fixed size segments will be requested from the server over a raw TCP, raw QUIC or HTTP connections. In raw mode, all segments will be served over the same connection, which is closed afterwards. In HTTP mode, a string with random characters will be requested and each request goes over its own connection.
+When `flowsim` is started as a client, fixed size segments will be requested from the server over a raw TCP, raw QUIC, HTTP or HTTPS connections. In raw mode, all segments will be served over the same connection, which is closed afterwards. In HTTP or HTTPS mode, a string with random characters will be requested and each request goes over its own connection.
 
 ```
 Usage:
@@ -81,6 +84,7 @@ Flags:
   -N, --burst string   Size of each burst (as x(.xxx)?[kmgtKMGT]?) (default "1M")
   -h, --help           help for client
   -H, --http           Use HTTP (default is TCP)
+  -S, --https          Use HTTPS (default is TCP)
   -t, --interval int   Interval in secs between bursts (default 10)
   -I, --ip string      IP address or host name of the flowsim server to talk to (default "127.0.0.1")
   -n, --iter int       Number of bursts (default 6)
@@ -132,41 +136,41 @@ Note that it makes no sense to set the DSCP in this mode and this option is ther
 
 ## Output format
 
-The TCP and QUIC client outputs results in JSON format:
+The TCP, QUIC, HTTP and HTTPS clients output results in JSON format:
 
 ```
 {
-  "burst" : "1048576",
-  "server" : "127.0.0.1:8081",
-  "start" : "2019-03-31T10:15:02+02:00",
-  "times": [
-    { "time" : "10.343846ms", "xferd" : "1048576" , "n" : "1" },
-    { "time" : "18.662231ms", "xferd" : "1048576" , "n" : "2" },
-    { "time" : "16.11958ms", "xferd" : "1048576" , "n" : "3" },
-    { "time" : "16.177647ms", "xferd" : "1048576" , "n" : "4" },
-    { "time" : "17.967623ms", "xferd" : "1048576" , "n" : "5" },
-    { "time" : "14.527681ms", "xferd" : "1048576" , "n" : "6" }
+  "Protocol": "HTTPS",
+  "Server": "127.0.0.1:8081",
+  "Burst": 1048576,
+  "Start": "2019-12-21T13:43:27+01:00",
+  "Times": [
+   {
+    "XferStart": "2019-12-21T13:43:27+01:00",
+    "XferTime": "61.769567ms",
+    "XferBytes": 1048576,
+    "XferIter": 1
+   },...
   ]
 }
 ```
 
-* `burst`: programmed burst size
-* `server`: remote IP address
-* `start`: start time in RFC format
-* `time`: time needed to request and download
-* `xferd`: effectively transferred bytes
-* `n`: sequence number
+* `Protocol`: protocol used (HTTP, HTTPS or QUIC)
+* `Burst`: programmed burst size
+* `Server`: remote IP address
+* `Start`: start time in RFC format
+* `Times`: a series of individual measurements
 
 The UDP sink also prints result in JSON format
 
 ```
 {
-  "127.0.0.1:53025" : {
-    "Delay" :  "5875.82 us",
-    "Jitter" : "382.58 us",
-    "Loss" : "0",
-    "Reorder" : "0",
-    "Samples" : "60"
-   }
-}
+  "Protocol": "UDP",
+  "Peer": "127.0.0.1:52635",
+  "Delay": "4583.90us",
+  "Jitter": "847.20us",
+  "Loss": 0,
+  "Reorder": 0,
+  "Samples": 60
+ }
 ```
