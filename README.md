@@ -14,7 +14,7 @@ A UNIX or UNIX-like OS
 
 ### quic-go
 
-`flowsim` depends on https://github.com/ferrieux/quic-go (v0.7.7), a specfically tuned fork of the `spinvec` branch of https://github.com/ferrieux/quic-go, which, in turn is a fork of https://github.com/lucas-clemente/quic-go. We need this specific version, because it implements the spinbit.
+`flowsim` depends on https://github.com/paaguti/quic-go (v0.7.7), a specfically tuned fork of the `spinvec` branch of https://github.com/ferrieux/quic-go, which, in turn is a fork of https://github.com/lucas-clemente/quic-go. We need this specific version, because it implements the spinbit.
 
 
 ## Build and install
