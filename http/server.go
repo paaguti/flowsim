@@ -2,12 +2,16 @@ package http
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	common "github.com/paaguti/flowsim/common"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"net/url"
+	"path"
 	"strconv"
 	"time"
 )
@@ -26,7 +30,7 @@ type apiHandler struct{}
 
 func (apiHandler) ServeHTTP(http.ResponseWriter, *http.Request) {}
 
-func Server(ip string, port int, single bool, tos int) {
+func Server(ip string, port int, single bool, tos int, certs string) {
 
 	srvClosed := make(chan int)
 	mux := http.NewServeMux()
@@ -65,7 +69,24 @@ func Server(ip string, port int, single bool, tos int) {
 			fmt.Fprintf(w, "Welcome to the flowsim HTTP server!")
 		}
 	})
+
 	var srv *http.Server
+	var tlsConfig *tls.Config
+
+	if certs == "" {
+		tlsConfig = &tls.Config{}
+	} else {
+		caCert, err := ioutil.ReadFile(path.Join(certs, "client.crt"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+		tlsConfig = &tls.Config{
+			ClientAuth: tls.RequireAndVerifyClientCert,
+			ClientCAs:  caCertPool,
+		}
+	}
 
 	srv = &http.Server{
 		Addr:           net.JoinHostPort(ip, strconv.Itoa(port)),
@@ -73,11 +94,16 @@ func Server(ip string, port int, single bool, tos int) {
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
+		TLSConfig:      tlsConfig,
 	}
 
 	for {
 		go func() {
-			srv.ListenAndServe()
+			if certs == "" {
+				srv.ListenAndServe()
+			} else {
+				srv.ListenAndServeTLS(path.Join(certs, "server.crt"), path.Join(certs, "server.key"))
+			}
 		}()
 		<-srvClosed
 		if single {

@@ -1,6 +1,8 @@
 package http
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	common "github.com/paaguti/flowsim/common"
 	"io/ioutil"
@@ -8,6 +10,7 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	"path"
 	"strconv"
 	"time"
 )
@@ -27,19 +30,33 @@ type Result struct {
 	Times    []Transfer
 }
 
-func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t time.Time) *Transfer {
-	//
-	// Until you get the DSCP right, just make it part of the request
-	//
-	server_url := fmt.Sprintf("http://%s/flowsim/request?bytes=%d&pass=%d&of=%d&dscp=%d", serverAddr, tsize, iter, total, dscp)
+func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t time.Time, tlsConfig *tls.Config) *Transfer {
+	var tr *http.Transport
+	var proto string
 
-	tr := &http.Transport{
+	tr = &http.Transport{
 		MaxIdleConns:       1,
 		IdleConnTimeout:    1 * time.Second,
 		DisableCompression: true,
 		DisableKeepAlives:  true,
+		TLSClientConfig:    tlsConfig,
 	}
 
+	// log.Printf("Using TLS config: %v", tlsConfig.RootCAs)
+
+	if tlsConfig.RootCAs == nil {
+		proto = "http"
+	} else {
+		proto = "https"
+	}
+	log.Printf("Starting an %s client", proto)
+	//
+	// Until you get the DSCP right, just make it part of the request
+	//
+	server_url := fmt.Sprintf("%s://%s/flowsim/request?bytes=%d&pass=%d&of=%d&dscp=%d", proto, serverAddr, tsize, iter, total, dscp)
+	//
+	//
+	//
 	req, err := http.NewRequest("GET", server_url, nil)
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
@@ -74,8 +91,35 @@ func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t t
 	}
 }
 
-func Client(ip string, port int, iter int, interval int, bunch int, dscp int) error {
+func Client(ip string, port int, iter int, interval int, bunch int, dscp int, certs string) error {
 
+	var resultProto string
+	var tlsConfig *tls.Config
+
+	if certs != "" {
+		log.Printf("Trying to read certificates from %s", certs)
+
+		// path.Join(path.Dir(filename), "data.csv")
+		caCert, err := ioutil.ReadFile(path.Join(certs, "server.crt"))
+		if err != nil {
+			return common.FatalError(err)
+		}
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+		cert, err := tls.LoadX509KeyPair(path.Join(certs, "client.crt"), path.Join(certs, "client.key"))
+		if err != nil {
+			return common.FatalError(err)
+		}
+
+		tlsConfig = &tls.Config{
+			RootCAs:      caCertPool,
+			Certificates: []tls.Certificate{cert},
+		}
+		resultProto = "HTTPS"
+	} else {
+		tlsConfig = &tls.Config{}
+		resultProto = "HTTP"
+	}
 	serverAddrStr := net.JoinHostPort(ip, strconv.Itoa(port))
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -83,7 +127,7 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 	time.Sleep(time.Duration(initWait) * time.Second)
 
 	result := Result{
-		Protocol: "HTTP",
+		Protocol: resultProto,
 		Server:   serverAddrStr,
 		Burst:    bunch,
 		Start:    time.Now().Format(time.RFC3339),
@@ -92,7 +136,7 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
 	defer ticker.Stop()
-	result.Times[0] = *mkTransfer(serverAddrStr, 1, iter, bunch, dscp, time.Now())
+	result.Times[0] = *mkTransfer(serverAddrStr, 1, iter, bunch, dscp, time.Now(), tlsConfig)
 	currIter := 1
 
 	if iter > 1 {
@@ -104,7 +148,7 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 				if currIter >= iter {
 					close(done)
 				}
-				result.Times[currIter-1] = *mkTransfer(serverAddrStr, currIter, iter, bunch, dscp, t)
+				result.Times[currIter-1] = *mkTransfer(serverAddrStr, currIter, iter, bunch, dscp, t, tlsConfig)
 			case <-done:
 				// fmt.Fprintf(os.Stderr, "Finished...\n\n")
 				common.PrintJSon(result)

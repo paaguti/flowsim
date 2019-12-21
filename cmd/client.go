@@ -7,6 +7,7 @@ import (
 	"github.com/paaguti/flowsim/quic"
 	"github.com/paaguti/flowsim/tcp"
 	"github.com/spf13/cobra"
+	"path/filepath"
 )
 
 var clientIp string
@@ -17,6 +18,7 @@ var clientTos string
 var clientBurst string
 var clientQuic bool
 var clientHttp bool
+var clientHttps bool
 var clientIpv6 bool
 
 // clientCmd represents the client command
@@ -41,8 +43,14 @@ CAVEAT: flowsim server and client mode have be in the same mode.`,
 		common.FatalError(err)
 		if clientQuic {
 			quic.Client(useIp, clientPort, clientIter, clientInterval, burstSize, tos*4)
-		} else if clientHttp {
-			http.Client(useIp, clientPort, clientIter, clientInterval, burstSize, tos*4)
+		} else if clientHttp || clientHttps {
+			certDir := ""
+			if clientHttps {
+				if exePath, err := ExePath(); err == nil {
+					certDir = filepath.Dir(exePath)
+				}
+			}
+			http.Client(useIp, clientPort, clientIter, clientInterval, burstSize, tos*4, certDir)
 		} else {
 			tcp.Client(useIp, clientPort, clientIter, clientInterval, burstSize, tos*4)
 		}
@@ -60,5 +68,6 @@ func init() {
 	clientCmd.PersistentFlags().StringVarP(&clientTos, "TOS", "T", "CS0", "Value of the DSCP field in the IP packets (valid int or DSCP-Id)")
 	clientCmd.PersistentFlags().BoolVarP(&clientQuic, "quic", "Q", false, "Use QUIC (default is TCP)")
 	clientCmd.PersistentFlags().BoolVarP(&clientHttp, "http", "H", false, "Use HTTP (default is TCP)")
+	clientCmd.PersistentFlags().BoolVarP(&clientHttps, "https", "S", false, "Use HTTPS (default is TCP)")
 	clientCmd.PersistentFlags().BoolVarP(&clientIpv6, "ipv6", "6", false, "Use IPv6 (default is IPv4)")
 }

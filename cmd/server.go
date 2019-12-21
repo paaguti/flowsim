@@ -7,6 +7,7 @@ import (
 	"github.com/paaguti/flowsim/quic"
 	"github.com/paaguti/flowsim/tcp"
 	"github.com/spf13/cobra"
+	"path/filepath"
 )
 
 var serverIp string
@@ -15,6 +16,7 @@ var serverSingle bool
 var serverTos string
 var serverQuic bool
 var serverHttp bool
+var serverHttps bool
 var serverIpv6 bool
 
 var serverCmd = &cobra.Command{
@@ -35,8 +37,17 @@ Payload is filled with random bytes`,
 		if serverQuic {
 			// fmt.Println("Warning: QUIC doesn't support setting DSCP yet!")
 			quic.Server(useIp, serverPort, serverSingle, tos*4)
-		} else if serverHttp {
-			http.Server(useIp, serverPort, serverSingle, tos*4)
+		} else if serverHttp || serverHttps {
+			//
+			// TODO:
+			//
+			certDir := ""
+			if serverHttps {
+				if exePath, err := ExePath(); err == nil {
+					certDir = filepath.Dir(exePath)
+				}
+			}
+			http.Server(useIp, serverPort, serverSingle, tos*4, certDir)
 		} else {
 			tcp.Server(useIp, serverPort, serverSingle, tos*4)
 		}
@@ -51,5 +62,6 @@ func init() {
 	serverCmd.PersistentFlags().StringVarP(&serverTos, "TOS", "T", "CS0", "Value of the DSCP field in the IP layer (number or DSCP id)")
 	serverCmd.PersistentFlags().BoolVarP(&serverQuic, "quic", "Q", false, "Use QUIC (default is TCP)")
 	serverCmd.PersistentFlags().BoolVarP(&serverHttp, "http", "H", false, "Use HTTP (default is TCP)")
+	serverCmd.PersistentFlags().BoolVarP(&serverHttps, "https", "S", false, "Use HTTPS (default is TCP)")
 	serverCmd.PersistentFlags().BoolVarP(&serverIpv6, "ipv6", "6", false, "Use IPv6 (default is IPv4)")
 }
