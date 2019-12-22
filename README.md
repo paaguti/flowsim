@@ -31,9 +31,15 @@ go test
 #
 go build .
 go install .
+```
 
+You can generate self-signed certificates for test purporses using:
+
+```
 ./mk_cert.sh
 ```
+
+This will allow you to run the programs locally. 
 
 # flowsim
 
