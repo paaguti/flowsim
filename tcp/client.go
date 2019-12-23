@@ -12,14 +12,7 @@ import (
 	"time"
 )
 
-type Transfer struct {
-	XferStart string
-	XferTime  string
-	XferBytes int
-	XferIter  int
-}
-
-func mkTransfer(conn *net.TCPConn, iter int, total int, tsize int, t time.Time) *Transfer {
+func mkTransfer(conn *net.TCPConn, iter int, total int, tsize int, t time.Time) *common.Transfer {
 	// fmt.Fprintf(os.Stderr, "Launching at %v\n", t)
 	// send to socket
 	fmt.Fprintf(conn, fmt.Sprintf("GET %d/%d %d\n", iter, total, tsize))
@@ -30,20 +23,12 @@ func mkTransfer(conn *net.TCPConn, iter int, total int, tsize int, t time.Time) 
 	common.FatalError(err)
 
 	// fmt.Fprintf(os.Stderr, "Effectively read %d bytes\n", readBytes)
-	return &Transfer{
+	return &common.Transfer{
 		XferStart: t.Format(time.RFC3339),
 		XferTime:  time.Since(t).String(),
 		XferBytes: readBytes,
 		XferIter:  iter,
 	}
-}
-
-type Result struct {
-	Protocol string
-	Server   string
-	Burst    int
-	Start    string
-	Times    []Transfer
 }
 
 func Client(host string, port int, iter int, interval int, burst int, tos int) {
@@ -69,12 +54,12 @@ func Client(host string, port int, iter int, interval int, burst int, tos int) {
 	initWait := r.Intn(interval*50) / 100.0
 	time.Sleep(time.Duration(initWait) * time.Second)
 
-	result := Result{
+	result := common.Result{
 		Protocol: "TCP",
 		Server:   serverAddrStr,
 		Burst:    burst,
 		Start:    time.Now().Format(time.RFC3339),
-		Times:    make([]Transfer, iter),
+		Times:    make([]common.Transfer, iter),
 	}
 
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
@@ -88,10 +73,10 @@ func Client(host string, port int, iter int, interval int, burst int, tos int) {
 			select {
 			case t := <-ticker.C:
 				currIter++
-				if currIter >= iter {
-					close(done)
-				}
 				result.Times[currIter-1] = *mkTransfer(conn, currIter, iter, burst, t)
+				if currIter >= iter {
+					done <- true
+				}
 			case <-done:
 				// fmt.Fprintf(os.Stderr, "Finished...\n\n")
 				common.PrintJSon(result)

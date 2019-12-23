@@ -16,22 +16,7 @@ import (
 	"time"
 )
 
-type Transfer struct {
-	XferStart string
-	XferTime  string
-	XferBytes int
-	XferIter  int
-}
-
-type Result struct {
-	Protocol string
-	Server   string
-	Burst    int
-	Start    string
-	Times    []Transfer
-}
-
-func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t time.Time, tlsConfig *tls.Config) (*Transfer, string) {
+func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t time.Time, tlsConfig *tls.Config) (*common.Transfer, string) {
 	var tr *http.Transport
 	var proto string
 
@@ -84,7 +69,7 @@ func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t t
 	// 	log.Fatal(string(body))
 	// }
 
-	return &Transfer{
+	return &common.Transfer{
 		XferStart: t.Format(time.RFC3339),
 		XferTime:  time.Since(t).String(),
 		XferBytes: len(body),
@@ -115,12 +100,12 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int, ce
 	initWait := r.Intn(interval*50) / 100.0
 	time.Sleep(time.Duration(initWait) * time.Second)
 
-	result := Result{
+	result := common.Result{
 		Protocol: "",
 		Server:   serverAddrStr,
 		Burst:    bunch,
 		Start:    time.Now().Format(time.RFC3339),
-		Times:    make([]Transfer, iter),
+		Times:    make([]common.Transfer, iter),
 	}
 
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
@@ -132,15 +117,16 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int, ce
 
 	if iter > 1 {
 		done := make(chan bool, 1)
+		defer close(done)
 		for {
 			select {
 			case t := <-ticker.C:
 				currIter++
-				if currIter >= iter {
-					close(done)
-				}
 				measure, _ = mkTransfer(serverAddrStr, currIter, iter, bunch, dscp, t, tlsConfig)
 				result.Times[currIter-1] = *measure
+				if currIter >= iter {
+					done <- true
+				}
 			case <-done:
 				// fmt.Fprintf(os.Stderr, "Finished...\n\n")
 				common.PrintJSon(result)

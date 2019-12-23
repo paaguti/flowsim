@@ -2,12 +2,12 @@ package quic
 
 import (
 	// "context"
+	// "crypto/rsa"
+	// "crypto/tls"
+	// "crypto/x509"
+	// "encoding/pem"
+	// "math/big"
 	"crypto/rand"
-	"crypto/rsa"
-	"crypto/tls"
-	"crypto/x509"
-	"encoding/pem"
-	"math/big"
 
 	"bufio"
 	"errors"
@@ -43,7 +43,11 @@ func Server(ip string, port int, single bool, dscp int) error {
 		return err
 	}
 
-	listener, err := quic.Listen(conn, generateTLSConfig(), nil)
+	//
+	// TODO:
+	//   Include certificate directory handling ("/etc") is just a dummy
+	//
+	listener, err := quic.Listen(conn, common.ServerTLSConfig(""), nil)
 	if common.FatalError(err) != nil {
 		return err
 	}
@@ -140,23 +144,25 @@ func parseCmd(strb string) ([]byte, bool, error) {
 	return nil, false, err
 }
 
-// Setup a bare-bones TLS config for the server
-func generateTLSConfig() *tls.Config {
-	key, err := rsa.GenerateKey(rand.Reader, 1024)
-	if common.FatalError(err) != nil {
-		return nil
-	}
-	template := x509.Certificate{SerialNumber: big.NewInt(1)}
-	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, &key.PublicKey, key)
-	if common.FatalError(err) != nil {
-		return nil
-	}
-	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
-	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
+// Setup a bare-bones TLS config for the server (moded to)
+// common.ServerTLSConfig(certs string) *tls.Config
+//
+// func generateTLSConfig() *tls.Config {
+// 	key, err := rsa.GenerateKey(rand.Reader, 1024)
+// 	if common.FatalError(err) != nil {
+// 		return nil
+// 	}
+// 	template := x509.Certificate{SerialNumber: big.NewInt(1)}
+// 	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, &key.PublicKey, key)
+// 	if common.FatalError(err) != nil {
+// 		return nil
+// 	}
+// 	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
+// 	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
 
-	tlsCert, err := tls.X509KeyPair(certPEM, keyPEM)
-	if common.FatalError(err) != nil {
-		return nil
-	}
-	return &tls.Config{Certificates: []tls.Certificate{tlsCert}}
-}
+// 	tlsCert, err := tls.X509KeyPair(certPEM, keyPEM)
+// 	if common.FatalError(err) != nil {
+// 		return nil
+// 	}
+// 	return &tls.Config{Certificates: []tls.Certificate{tlsCert}}
+// }

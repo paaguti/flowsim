@@ -3,37 +3,21 @@ package quic
 import (
 	"fmt"
 	"io"
+	"log"
+	"math/rand"
 	"net"
 	"strconv"
 	"time"
-
-	// "context"
-	"crypto/tls"
-	"math/rand"
-
-	common "github.com/paaguti/flowsim/common"
 	//
 	// use the fork with the Spinbit and VEC implementation
 	// I have forked ferrieux/quic-go to keep a stable version
 	//
 	// quic "github.com/ferrieux/quic-go"
+	common "github.com/paaguti/flowsim/common"
 	quic "github.com/paaguti/quic-go"
+	// "context"
+	// "crypto/tls"
 )
-
-type Transfer struct {
-	XferStart string
-	XferTime  string
-	XferBytes int
-	XferIter  int
-}
-
-type Result struct {
-	Protocol string
-	Server   string
-	Burst    int
-	Start    string
-	Times    []Transfer
-}
 
 func Client(ip string, port int, iter int, interval int, bunch int, dscp int) error {
 
@@ -62,9 +46,9 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 
 	config = &quic.Config{Versions: []quic.VersionNumber{quic.VersionGQUIC39}}
 
-	// config := quic.PopulateClientConfig(nil, false)
+	// TODO: include certificate configuration for a better TLS verification
 
-	session, err := quic.Dial(udpConn, updAddr, addr, &tls.Config{InsecureSkipVerify: true},
+	session, err := quic.Dial(udpConn, updAddr, addr, common.ClientTLSConfig(""),
 		config)
 	if common.FatalError(err) != nil {
 		return err
@@ -86,12 +70,12 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 	initWait := r.Intn(interval*50) / 100.0
 	time.Sleep(time.Duration(initWait) * time.Second)
 
-	result := Result{
+	result := common.Result{
 		Protocol: "QUIC",
 		Server:   addr,
 		Burst:    bunch,
 		Start:    time.Now().Format(time.RFC3339),
-		Times:    make([]Transfer, iter),
+		Times:    make([]common.Transfer, iter),
 	}
 
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
@@ -101,17 +85,17 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 
 	if iter > 1 {
 		done := make(chan bool, 1)
+		defer close(done)
 		for {
 			select {
 			case t := <-ticker.C:
+				result.Times[currIter] = *mkTransfer(stream, buf, currIter+1, iter, t)
 				currIter++
 				if currIter >= iter {
-					close(done)
+					done <- true
 				}
-				result.Times[currIter-1] = *mkTransfer(stream, buf, currIter, iter, t)
 			case <-done:
 				common.PrintJSon(result)
-				// fmt.Printf("\nFinished...\n\n")
 				return nil
 			}
 		}
@@ -119,10 +103,10 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 	return nil
 }
 
-func mkTransfer(stream quic.Stream, buf []byte, current int, iter int, t time.Time) *Transfer {
+func mkTransfer(stream quic.Stream, buf []byte, current int, iter int, t time.Time) *common.Transfer {
 
 	message := fmt.Sprintf("GET %d/%d %d\n", current, iter, len(buf))
-	// fmt.Printf("Client: (%v) Sending > %s", t, message)
+	log.Printf("Client: iteration %d, Sending > %s", current, message)
 
 	_, err := stream.Write([]byte(message))
 	if common.FatalError(err) != nil {
@@ -130,11 +114,13 @@ func mkTransfer(stream quic.Stream, buf []byte, current int, iter int, t time.Ti
 	}
 
 	n, err := io.ReadFull(stream, buf)
+	tDelta := time.Since(t).String()
+
 	common.FatalError(err)
-	// fmt.Printf("Client: Got %d bytes back\n", n)
-	return &Transfer{
+	log.Printf("Client: Got %d bytes back\n", n)
+	return &common.Transfer{
 		XferStart: t.Format(time.RFC3339),
-		XferTime:  time.Since(t).String(),
+		XferTime:  tDelta,
 		XferBytes: n,
 		XferIter:  current,
 	}
