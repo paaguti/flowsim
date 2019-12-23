@@ -82,8 +82,8 @@ func Server(ip string, port int, single bool, tos int, certs string) {
 			TLSConfig:      &tls.Config{},
 		}
 	} else {
-		// tlsConfig, err := common.ServerTLSConfig(certs)
-		tlsConfig, err := common.HttpsServerTLSConfig(certs)
+		tlsConfig, err := common.ServerTLSConfig(certs)
+		// tlsConfig, err := common.HttpsServerTLSConfig(certs)
 		if err != nil {
 			return
 		}

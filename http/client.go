@@ -87,7 +87,8 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int, ce
 	} else {
 		log.Printf("Trying to read certificates from %s", certs)
 		var err error
-		tlsConfig, err = common.HttpsClientTLSConfig(certs)
+		// tlsConfig, err = common.HttpsClientTLSConfig(certs)
+		tlsConfig, err = common.ClientTLSConfig(certs)
 		if err != nil {
 			return err
 		}

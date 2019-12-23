@@ -61,7 +61,9 @@ func ServerTLSConfig(certs string) (*tls.Config, error) {
 	if FatalError(err) != nil {
 		return nil, err
 	}
-	return &tls.Config{Certificates: []tls.Certificate{tlsCert}}, nil
+	return &tls.Config{
+		Certificates: []tls.Certificate{tlsCert},
+	}, nil
 }
 
 // Create a barebones minimum TLS configuration for the client
@@ -109,7 +111,6 @@ func HttpsClientTLSConfig(certs string) (*tls.Config, error) {
 	// 	Certificates: []tls.Certificate{cert},
 	// }, nil
 	return &tls.Config{InsecureSkipVerify: true}, nil
-
 }
 
 func IsSecureConfig(tlsConfig *tls.Config) bool {
