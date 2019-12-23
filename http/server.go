@@ -3,10 +3,10 @@ package http
 import (
 	"context"
 	"crypto/tls"
-	"crypto/x509"
+	// "crypto/x509"
 	"fmt"
 	common "github.com/paaguti/flowsim/common"
-	"io/ioutil"
+	// "io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -57,7 +57,7 @@ func Server(ip string, port int, single bool, tos int, certs string) {
 		// fmt.Fprintf(w, "So you are requesting "+bytes+" bytes in pass "+pass+" of "+of+" from me...")
 		fmt.Fprintf(w, common.RandStringBytes(requested))
 		if pass == total {
-			log.Printf("And here we should stop")
+			// log.Printf("And here we should stop")
 			srvClosed <- 1
 		}
 	})
@@ -71,38 +71,39 @@ func Server(ip string, port int, single bool, tos int, certs string) {
 	})
 
 	var srv *http.Server
-	var tlsConfig *tls.Config
 
 	if certs == "" {
-		tlsConfig = &tls.Config{}
+		srv = &http.Server{
+			Addr:           net.JoinHostPort(ip, strconv.Itoa(port)),
+			Handler:        mux,
+			ReadTimeout:    10 * time.Second,
+			WriteTimeout:   10 * time.Second,
+			MaxHeaderBytes: 1 << 20,
+			TLSConfig:      &tls.Config{},
+		}
 	} else {
-		caCert, err := ioutil.ReadFile(path.Join(certs, "client.crt"))
+		tlsConfig, err := common.HttpsServerTLSConfig(certs)
 		if err != nil {
-			log.Fatal(err)
+			return
 		}
-		caCertPool := x509.NewCertPool()
-		caCertPool.AppendCertsFromPEM(caCert)
-		tlsConfig = &tls.Config{
-			ClientAuth: tls.RequireAndVerifyClientCert,
-			ClientCAs:  caCertPool,
+		srv = &http.Server{
+			Addr:           net.JoinHostPort(ip, strconv.Itoa(port)),
+			Handler:        mux,
+			ReadTimeout:    10 * time.Second,
+			WriteTimeout:   10 * time.Second,
+			MaxHeaderBytes: 1 << 20,
+			TLSConfig:      tlsConfig,
 		}
-	}
-
-	srv = &http.Server{
-		Addr:           net.JoinHostPort(ip, strconv.Itoa(port)),
-		Handler:        mux,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
-		MaxHeaderBytes: 1 << 20,
-		TLSConfig:      tlsConfig,
 	}
 
 	for {
 		go func() {
 			if certs == "" {
+				log.Println("Starting HTTP server")
 				srv.ListenAndServe()
 			} else {
-				srv.ListenAndServeTLS(path.Join(certs, "server.crt"), path.Join(certs, "server.key"))
+				log.Println("Starting HTTPS server")
+				srv.ListenAndServeTLS(path.Join(certs, "flowsim-server.crt"), path.Join(certs, "flowsim-server.key"))
 			}
 		}()
 		<-srvClosed
@@ -110,9 +111,12 @@ func Server(ip string, port int, single bool, tos int, certs string) {
 			if err := srv.Shutdown(context.Background()); err != nil {
 				log.Printf("HTTP server Shutdown: %v", err)
 			}
-			log.Printf("HTTP server shutdown")
+			if certs == "" {
+				log.Println("HTTP server shutdown")
+			} else {
+				log.Println("HTTPS server shutdown")
+			}				
 			break
 		}
 	}
-
 }

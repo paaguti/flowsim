@@ -2,7 +2,7 @@ package http
 
 import (
 	"crypto/tls"
-	"crypto/x509"
+	// "crypto/x509"
 	"fmt"
 	common "github.com/paaguti/flowsim/common"
 	"io/ioutil"
@@ -10,8 +10,9 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
-	"path"
+	// "path"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -30,7 +31,7 @@ type Result struct {
 	Times    []Transfer
 }
 
-func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t time.Time, tlsConfig *tls.Config) *Transfer {
+func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t time.Time, tlsConfig *tls.Config) (*Transfer, string) {
 	var tr *http.Transport
 	var proto string
 
@@ -88,7 +89,7 @@ func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t t
 		XferTime:  time.Since(t).String(),
 		XferBytes: len(body),
 		XferIter:  iter,
-	}
+	}, proto
 }
 
 func Client(ip string, port int, iter int, interval int, bunch int, dscp int, certs string) error {
@@ -96,29 +97,17 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int, ce
 	var resultProto string
 	var tlsConfig *tls.Config
 
-	if certs != "" {
-		log.Printf("Trying to read certificates from %s", certs)
-
-		// path.Join(path.Dir(filename), "data.csv")
-		caCert, err := ioutil.ReadFile(path.Join(certs, "server.crt"))
-		if err != nil {
-			return common.FatalError(err)
-		}
-		caCertPool := x509.NewCertPool()
-		caCertPool.AppendCertsFromPEM(caCert)
-		cert, err := tls.LoadX509KeyPair(path.Join(certs, "client.crt"), path.Join(certs, "client.key"))
-		if err != nil {
-			return common.FatalError(err)
-		}
-
-		tlsConfig = &tls.Config{
-			RootCAs:      caCertPool,
-			Certificates: []tls.Certificate{cert},
-		}
-		resultProto = "HTTPS"
-	} else {
+	if certs == "" {
 		tlsConfig = &tls.Config{}
-		resultProto = "HTTP"
+		// resultProto = "HTTP"
+	} else {
+		var err error
+		log.Printf("Trying to read certificates from %s", certs)
+		tlsConfig, err = common.HttpsClientTLSConfig(certs)
+		// resultProto = "HTTPS"
+		if err != nil {
+			return err
+		}
 	}
 	serverAddrStr := net.JoinHostPort(ip, strconv.Itoa(port))
 
@@ -127,7 +116,7 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int, ce
 	time.Sleep(time.Duration(initWait) * time.Second)
 
 	result := Result{
-		Protocol: resultProto,
+		Protocol: "",
 		Server:   serverAddrStr,
 		Burst:    bunch,
 		Start:    time.Now().Format(time.RFC3339),
@@ -136,7 +125,9 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int, ce
 
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
 	defer ticker.Stop()
-	result.Times[0] = *mkTransfer(serverAddrStr, 1, iter, bunch, dscp, time.Now(), tlsConfig)
+	measure, resultProto := mkTransfer(serverAddrStr, 1, iter, bunch, dscp, time.Now(), tlsConfig)
+	result.Times[0] = *measure
+	result.Protocol = strings.ToUpper(resultProto)
 	currIter := 1
 
 	if iter > 1 {
@@ -148,7 +139,8 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int, ce
 				if currIter >= iter {
 					close(done)
 				}
-				result.Times[currIter-1] = *mkTransfer(serverAddrStr, currIter, iter, bunch, dscp, t, tlsConfig)
+				measure, _ = mkTransfer(serverAddrStr, currIter, iter, bunch, dscp, t, tlsConfig)
+				result.Times[currIter-1] = *measure
 			case <-done:
 				// fmt.Fprintf(os.Stderr, "Finished...\n\n")
 				common.PrintJSon(result)
