@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	// "log"
-	"path"
-	"runtime"
 )
 
 const (
@@ -95,9 +93,3 @@ func Dscp(s string) (int, error) {
 	}
 }
 
-func ExePath() (string, error) {
-	_, filename, _, _ := runtime.Caller(1)
-	// log.Printf("Program name: %s", filename)
-	return path.Dir(filename), nil
-
-}

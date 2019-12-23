@@ -7,7 +7,7 @@ import (
 	"github.com/paaguti/flowsim/quic"
 	"github.com/paaguti/flowsim/tcp"
 	"github.com/spf13/cobra"
-	"path/filepath"
+	"path"
 )
 
 var serverIp string
@@ -43,8 +43,8 @@ Payload is filled with random bytes`,
 			//
 			certDir := ""
 			if serverHttps {
-				if exePath, err := ExePath(); err == nil {
-					certDir = filepath.Dir(exePath)
+				if exePath, err := common.ExePath(); err == nil {
+					certDir = path.Dir(exePath)
 				}
 			}
 			http.Server(useIp, serverPort, serverSingle, tos*4, certDir)

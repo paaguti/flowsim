@@ -7,7 +7,7 @@ import (
 	"github.com/paaguti/flowsim/quic"
 	"github.com/paaguti/flowsim/tcp"
 	"github.com/spf13/cobra"
-	"path/filepath"
+	"path"
 )
 
 var clientIp string
@@ -46,8 +46,8 @@ CAVEAT: flowsim server and client mode have be in the same mode.`,
 		} else if clientHttp || clientHttps {
 			certDir := ""
 			if clientHttps {
-				if exePath, err := ExePath(); err == nil {
-					certDir = filepath.Dir(exePath)
+				if exePath, err := common.ExePath(); err == nil {
+					certDir = path.Dir(exePath)
 				}
 			}
 			http.Client(useIp, clientPort, clientIter, clientInterval, burstSize, tos*4, certDir)
