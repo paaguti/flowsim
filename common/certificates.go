@@ -7,10 +7,10 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	// "fmt"
-	"io/ioutil"
+	// "io/ioutil"
 	"log"
 	"math/big"
-	"path"
+	// "path"
 )
 
 // Setup a bare-bones TLS config for the server
@@ -76,42 +76,54 @@ func ClientTLSConfig(certs string) (*tls.Config, error) {
 // For HTTPS
 
 func HttpsServerTLSConfig(certs string) (*tls.Config, error) {
-	caCert, err := ioutil.ReadFile(path.Join(certs, "flowsim-client.crt"))
-	if err != nil {
-		return nil, FatalError(err)
-	}
-	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(caCert)
+	log.Printf("HttpsServerTLSConfig(%s)", certs)
+	// caCert, err := ioutil.ReadFile(path.Join(certs, "flowsim-client.crt"))
+	// if err != nil {
+	// 	return nil, FatalError(err)
+	// }
+	// caCertPool := x509.NewCertPool()
+	// caCertPool.AppendCertsFromPEM(caCert)
 	return &tls.Config{
-		ClientAuth: tls.RequireAndVerifyClientCert,
-		ClientCAs:  caCertPool,
+		// ClientAuth: tls.RequireAndVerifyClientCert,
+		// ClientCAs:  caCertPool,
+		ClientAuth: tls.RequestClientCert,
 	}, nil
 }
 
 func HttpsClientTLSConfig(certs string) (*tls.Config, error) {
-	// path.Join(path.Dir(filename), "data.csv")
-	caCert, err := ioutil.ReadFile(path.Join(certs, "flowsim-server.crt"))
-	if err != nil {
-		return nil, FatalError(err)
-	}
-	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(caCert)
-	cert, err := tls.LoadX509KeyPair(path.Join(certs, "flowsim-client.crt"), path.Join(certs, "flowsim-client.key"))
-	if err != nil {
-		return nil, FatalError(err)
-	}
+	log.Printf("HttpsClientTLSConfig(%s)", certs)
 
-	return &tls.Config{
-		RootCAs:      caCertPool,
-		Certificates: []tls.Certificate{cert},
-	}, nil
+	// caCert, err := ioutil.ReadFile(path.Join(certs, "flowsim-server.crt"))
+	// if err != nil {
+	// 	return nil, FatalError(err)
+	// }
+	// caCertPool := x509.NewCertPool()
+	// caCertPool.AppendCertsFromPEM(caCert)
+	// cert, err := tls.LoadX509KeyPair(path.Join(certs, "flowsim-client.crt"), path.Join(certs, "flowsim-client.key"))
+	// if err != nil {
+	// 	return nil, FatalError(err)
+	// }
+
+	// return &tls.Config{
+	// 	RootCAs:      caCertPool,
+	// 	Certificates: []tls.Certificate{cert},
+	// }, nil
+	return &tls.Config{InsecureSkipVerify: true}, nil
+
 }
 
 func IsSecureConfig(tlsConfig *tls.Config) bool {
-	if tlsConfig.ClientAuth == tls.RequireAndVerifyClientCert {
+	// log.Printf("IsSecureConfig(%v)\n", *tlsConfig)
+	// log.Printf("  .InsecureSkipVerify(%v)\n", tlsConfig.InsecureSkipVerify)
+
+	if tlsConfig.InsecureSkipVerify == true {
+		// log.Printf(" %v is secure", *tlsConfig)
 		return true
 	}
-	if tlsConfig.RootCAs != nil {
+	if tlsConfig.Certificates != nil {
+		return true
+	}
+	if tlsConfig.ClientAuth == tls.RequestClientCert {
 		return true
 	}
 	return false

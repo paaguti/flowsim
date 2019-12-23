@@ -30,10 +30,10 @@ func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t t
 
 	// log.Printf("Using TLS config: %v", tlsConfig.RootCAs)
 
-	if tlsConfig.Certificates == nil {
-		proto = "http"
-	} else {
+	if common.IsSecureConfig(tlsConfig) {
 		proto = "https"
+	} else {
+		proto = "http"
 	}
 	log.Printf("Starting an %s client", proto)
 	//
@@ -92,11 +92,7 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int, ce
 			return err
 		}
 	}
-	if common.IsSecureConfig(tlsConfig) {
-		resultProto = "HTTPS"
-	} else {
-		resultProto = "HTTP"
-	}
+
 	serverAddrStr := net.JoinHostPort(ip, strconv.Itoa(port))
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
