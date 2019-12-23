@@ -14,8 +14,12 @@
 
 package main
 
-import "github.com/paaguti/flowsim/cmd"
+import (
+	"github.com/paaguti/flowsim/cmd"
+	// common "github.com/paaguti/flowsim/common"
+)
 
 func main() {
+	// common.LogPrgName()
 	cmd.Execute()
 }
