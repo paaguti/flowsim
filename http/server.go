@@ -82,6 +82,7 @@ func Server(ip string, port int, single bool, tos int, certs string) {
 			TLSConfig:      &tls.Config{},
 		}
 	} else {
+		// tlsConfig, err := common.ServerTLSConfig(certs)
 		tlsConfig, err := common.HttpsServerTLSConfig(certs)
 		if err != nil {
 			return
@@ -104,6 +105,7 @@ func Server(ip string, port int, single bool, tos int, certs string) {
 			} else {
 				log.Println("Starting HTTPS server")
 				srv.ListenAndServeTLS(path.Join(certs, "flowsim-server.crt"), path.Join(certs, "flowsim-server.key"))
+				// srv.ListenAndServeTLS("", "")
 			}
 		}()
 		<-srvClosed
@@ -115,7 +117,7 @@ func Server(ip string, port int, single bool, tos int, certs string) {
 				log.Println("HTTP server shutdown")
 			} else {
 				log.Println("HTTPS server shutdown")
-			}				
+			}
 			break
 		}
 	}

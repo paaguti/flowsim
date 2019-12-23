@@ -30,7 +30,7 @@ func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t t
 
 	// log.Printf("Using TLS config: %v", tlsConfig.RootCAs)
 
-	if tlsConfig.RootCAs == nil {
+	if tlsConfig.Certificates == nil {
 		proto = "http"
 	} else {
 		proto = "https"
@@ -84,15 +84,18 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int, ce
 
 	if certs == "" {
 		tlsConfig = &tls.Config{}
-		// resultProto = "HTTP"
 	} else {
-		var err error
 		log.Printf("Trying to read certificates from %s", certs)
+		var err error
 		tlsConfig, err = common.HttpsClientTLSConfig(certs)
-		// resultProto = "HTTPS"
 		if err != nil {
 			return err
 		}
+	}
+	if common.IsSecureConfig(tlsConfig) {
+		resultProto = "HTTPS"
+	} else {
+		resultProto = "HTTP"
 	}
 	serverAddrStr := net.JoinHostPort(ip, strconv.Itoa(port))
 

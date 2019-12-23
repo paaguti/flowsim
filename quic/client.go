@@ -48,8 +48,12 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 
 	// TODO: include certificate configuration for a better TLS verification
 
-	session, err := quic.Dial(udpConn, updAddr, addr, common.ClientTLSConfig(""),
-		config)
+	tlsConfig, err := common.ClientTLSConfig("")
+	if common.FatalError(err) != nil {
+		return err
+	}
+
+	session, err := quic.Dial(udpConn, updAddr, addr, tlsConfig, config)
 	if common.FatalError(err) != nil {
 		return err
 	}

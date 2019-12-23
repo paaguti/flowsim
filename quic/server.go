@@ -47,7 +47,11 @@ func Server(ip string, port int, single bool, dscp int) error {
 	// TODO:
 	//   Include certificate directory handling ("/etc") is just a dummy
 	//
-	listener, err := quic.Listen(conn, common.ServerTLSConfig(""), nil)
+	tlsConfig, err := common.ServerTLSConfig("/etc")
+	if common.FatalError(err) != nil {
+		return err
+	}
+	listener, err := quic.Listen(conn, tlsConfig, nil)
 	if common.FatalError(err) != nil {
 		return err
 	}
