@@ -33,13 +33,13 @@ go build .
 go install .
 ```
 
-You can generate self-signed certificates for test purporses using:
+You will need certificates. You can generate self-signed certificates for test purporses using:
 
 ```
 ./mk_cert.sh
 ```
 
-This will allow you to run the programs locally. You need properly generated certificates to run HTTPS tests between two hosts.
+You should use properly generated certificates to run HTTPS tests between two hosts.
 
 # flowsim
 
