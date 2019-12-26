@@ -128,11 +128,11 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int, ce
 					done <- true
 				}
 			case <-done:
-				// fmt.Fprintf(os.Stderr, "Finished...\n\n")
 				common.PrintJSon(result)
 				return nil
 			}
 		}
 	}
+	common.PrintJSon(result)
 	return nil
 }
