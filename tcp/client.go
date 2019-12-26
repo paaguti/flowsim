@@ -84,4 +84,5 @@ func Client(host string, port int, iter int, interval int, burst int, tos int) {
 			}
 		}
 	}
+	common.PrintJSon(result)
 }

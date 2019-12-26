@@ -4,9 +4,11 @@ import (
 	"fmt"
 	common "github.com/paaguti/flowsim/common"
 	"github.com/paaguti/flowsim/http"
+	"github.com/paaguti/flowsim/http3"
 	"github.com/paaguti/flowsim/quic"
 	"github.com/paaguti/flowsim/tcp"
 	"github.com/spf13/cobra"
+	// "log"
 	"path"
 )
 
@@ -17,15 +19,16 @@ var serverTos string
 var serverQuic bool
 var serverHttp bool
 var serverHttps bool
+var serverHttp3 bool
 var serverIpv6 bool
 
 var serverCmd = &cobra.Command{
 	Use:   "server",
 	Short: "Start a flowsim TCP or QUIC server",
-	Long: `Start an TCP or QUIC ABR server.
+	Long: `Start a server.
 It will basically sit there and wait for the client to request bunches of data
-over a TCP, HTTP or QUIC connection
-Payload is filled with random bytes`,
+over a HTTP, HTTPS, HTTP3, raw TCP or raw QUIC connection
+Payload is filled with random bytes or characters`,
 	Run: func(cmd *cobra.Command, args []string) {
 		tos, err := Dscp(serverTos)
 		if err != nil {
@@ -37,17 +40,25 @@ Payload is filled with random bytes`,
 		if serverQuic {
 			// fmt.Println("Warning: QUIC doesn't support setting DSCP yet!")
 			quic.Server(useIp, serverPort, serverSingle, tos*4)
-		} else if serverHttp || serverHttps {
+		} else if serverHttp || serverHttps || serverHttp3 {
+			// log.Printf("HTTP %v HTTPS %v HTTP3 %v", serverHttp, serverHttps, serverHttp3)
 			//
 			// TODO:
 			//
-			certDir := ""
-			if serverHttps {
+			if serverHttp == false {
+				certDir := ""
 				if exePath, err := common.ExePath(); err == nil {
 					certDir = path.Dir(exePath)
 				}
+				if serverHttp3 {
+					// log.Printf("Trying an HTTP3 server")
+					http3.Server(useIp, serverPort, serverSingle, tos*4, certDir)
+				} else {
+					http.Server(useIp, serverPort, serverSingle, tos*4, certDir)
+				}
+			} else {
+				http.Server(useIp, serverPort, serverSingle, tos*4, "")
 			}
-			http.Server(useIp, serverPort, serverSingle, tos*4, certDir)
 		} else {
 			tcp.Server(useIp, serverPort, serverSingle, tos*4)
 		}
@@ -63,5 +74,6 @@ func init() {
 	serverCmd.PersistentFlags().BoolVarP(&serverQuic, "quic", "Q", false, "Use QUIC (default is TCP)")
 	serverCmd.PersistentFlags().BoolVarP(&serverHttp, "http", "H", false, "Use HTTP (default is TCP)")
 	serverCmd.PersistentFlags().BoolVarP(&serverHttps, "https", "S", false, "Use HTTPS (default is TCP)")
+	serverCmd.PersistentFlags().BoolVarP(&serverHttp3, "http3", "3", false, "Use HTTP3 (default is TCP)")
 	serverCmd.PersistentFlags().BoolVarP(&serverIpv6, "ipv6", "6", false, "Use IPv6 (default is IPv4)")
 }
