@@ -15,22 +15,8 @@ import (
 	// "net/url"
 	"path"
 	"strconv"
-	// "time"
+	"time"
 )
-
-// func getInt(query url.Values, field string) (int, bool) {
-// 	params, ok := query[field]
-// 	if !ok {
-// 		log.Println("Url Param '" + field + "' is missing")
-// 		return -1, false
-// 	}
-// 	value, err := strconv.Atoi(params[0])
-// 	return value, err == nil
-// }
-
-// type apiHandler struct{}
-
-// func (apiHandler) ServeHTTP(http.ResponseWriter, *http.Request) {}
 
 func Server(ip string, port int, single bool, tos int, certs string) {
 
@@ -44,8 +30,11 @@ func Server(ip string, port int, single bool, tos int, certs string) {
 			log.Printf("Starting HTTP3 server at %s", bCap)
 			server = http3.Server{
 				Server: &http.Server{
-					Handler: mux,
-					Addr:    bCap,
+					Addr:           bCap,
+					Handler:        mux,
+					ReadTimeout:    10 * time.Second,
+					WriteTimeout:   10 * time.Second,
+					MaxHeaderBytes: 1 << 20,
 				},
 				QuicConfig: &quic.Config{},
 			}

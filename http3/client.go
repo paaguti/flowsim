@@ -16,6 +16,8 @@ import (
 
 func doTransfer(url string, t time.Time, iter int, roundTripper *http3.RoundTripper) (*common.Transfer, string) {
 
+	readBack := iter > 0
+
 	log.Printf("Starting an http3 client to\n%s", url)
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -34,6 +36,10 @@ func doTransfer(url string, t time.Time, iter int, roundTripper *http3.RoundTrip
 		log.Fatal("Error reading response. ", err)
 	}
 	defer resp.Body.Close()
+
+	if readBack == false {
+		return nil, ""
+	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
