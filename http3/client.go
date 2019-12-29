@@ -3,8 +3,8 @@ package http3
 import (
 	"fmt"
 	common "github.com/paaguti/flowsim/common"
-	quic "github.com/paaguti/quic-go"
-	h2quic "github.com/paaguti/quic-go/h2quic"
+	quic "github.com/lucas-clemente/quic-go"
+	h2quic "github.com/lucas-clemente/quic-go/h2quic"
 	"io/ioutil"
 	"log"
 	"math/rand"
