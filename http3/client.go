@@ -14,6 +14,46 @@ import (
 	"time"
 )
 
+func closeTransfer(serverAddr string, roundTripper *http3.RoundTripper) {
+
+	//
+	// Always use https:// in the URL
+	// Until you get the DSCP right, just make it part of the request
+	//
+	server_url := fmt.Sprintf("https://%s/flowsim/close", serverAddr)
+	//
+	//
+	//
+	log.Printf("Starting an http3 client to\n%s", server_url)
+
+	req, err := http.NewRequest("GET", server_url, nil)
+	if err != nil {
+		log.Fatal("Error reading request. ", err)
+	}
+
+	req.Header.Set("Cache-Control", "no-cache")
+
+	client := &http.Client{
+		Transport: roundTripper,
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Error reading response. ", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal("Error reading body. ", err)
+	}
+
+	log.Printf("Got %d bytes back\n", len(body))
+	// if len(body) != bunch {
+	// 	log.Fatal(string(body))
+	// }
+}
+
 func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t time.Time, roundTripper *http3.RoundTripper) (*common.Transfer, string) {
 
 	//
@@ -103,9 +143,12 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int, ce
 				measure, _ = mkTransfer(serverAddrStr, currIter, iter, bunch, dscp, t, roundTripper)
 				result.Times[currIter-1] = *measure
 				if currIter >= iter {
+					closeTransfer(serverAddrStr, roundTripper)
+					log.Println("Client finished... sending done")
 					done <- true
 				}
 			case <-done:
+				log.Println("Client finished...")
 				// fmt.Fprintf(os.Stderr, "Finished...\n\n")
 				common.PrintJSon(result)
 				return nil

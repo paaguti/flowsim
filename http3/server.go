@@ -1,7 +1,7 @@
 package http3
 
 import (
-	// "context"
+	"context"
 	// "crypto/tls"
 	// "crypto/x509"
 	"fmt"
@@ -57,14 +57,25 @@ func Server(ip string, port int, single bool, tos int, certs string) {
 		}
 
 		// fmt.Fprintf(w, "So you are requesting "+bytes+" bytes in pass "+pass+" of "+of+" from me...")
-		fmt.Fprintf(w, common.RandStringBytes(requested))
+		fmt.Fprintln(w, common.RandStringBytes(requested))
 		if pass == total {
-			if single {
-				log.Printf("And here we should stop")
-				srvClosed <- 1
-			}
+		}
+		log.Printf("Served %d bytes in pass %d of %d", requested, pass, total)
+	})
+
+	mux.HandleFunc("/flowsim/close", func(w http.ResponseWriter, req *http.Request) {
+		// if req.URL.Path != "/" {
+		// 	http.NotFound(w, req)
+		// 	log.Fatal("Can't serve " + req.URL.Path)
+		// } else {
+		fmt.Fprintf(w, "Bye!\n")
+		// }
+		if single {
+			log.Printf("And here we should stop")
+			srvClosed <- 1
 		}
 	})
+
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		if req.URL.Path != "/" {
 			http.NotFound(w, req)
@@ -75,7 +86,7 @@ func Server(ip string, port int, single bool, tos int, certs string) {
 	})
 
 	for {
-
+		var server http3.Server
 		// go func() {
 		//   log.Println(http.ListenAndServe("localhost:6060",nil))
 		// }()
@@ -83,7 +94,7 @@ func Server(ip string, port int, single bool, tos int, certs string) {
 		go func() {
 			bCap := net.JoinHostPort(ip, strconv.Itoa(port))
 			log.Printf("Starting HTTP3 server at %s", bCap)
-			server := http3.Server{
+			server = http3.Server{
 				Server: &http.Server{
 					Handler: mux,
 					Addr:    bCap,
@@ -99,6 +110,8 @@ func Server(ip string, port int, single bool, tos int, certs string) {
 		}()
 		<-srvClosed
 		if single {
+			server.Shutdown(context.Background())
+			log.Printf("http3 server shutdown")
 			break
 		}
 	}
