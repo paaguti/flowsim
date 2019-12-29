@@ -70,7 +70,13 @@ func ServerTLSConfig(certs string) (*tls.Config, error) {
 
 func ClientTLSConfig(certs string) (*tls.Config, error) {
 	log.Printf("Ignoring directory '%s' for barebones TLS config", certs)
+	// log.Println("H2QUIC client test...")
+	pool, err := x509.SystemCertPool()
+	if err != nil {
+		return nil, err
+	}
 	return &tls.Config{
+		RootCAs:            pool,
 		InsecureSkipVerify: true,
 	}, nil
 }

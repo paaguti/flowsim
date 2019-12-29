@@ -2,9 +2,9 @@ package http3
 
 import (
 	"fmt"
+	// quic "github.com/lucas-clemente/quic-go"
+	http3 "github.com/lucas-clemente/quic-go/http3"
 	common "github.com/paaguti/flowsim/common"
-	quic "github.com/lucas-clemente/quic-go"
-	h2quic "github.com/lucas-clemente/quic-go/h2quic"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t time.Time, roundTripper *h2quic.RoundTripper) (*common.Transfer, string) {
+func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t time.Time, roundTripper *http3.RoundTripper) (*common.Transfer, string) {
 
 	//
 	// Always use https:// in the URL
@@ -24,7 +24,7 @@ func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t t
 	//
 	//
 	//
-	log.Printf("Starting an h2quic client to\n%s", server_url)
+	log.Printf("Starting an http3 client to\n%s", server_url)
 
 	req, err := http.NewRequest("GET", server_url, nil)
 	if err != nil {
@@ -63,12 +63,13 @@ func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t t
 
 func Client(ip string, port int, iter int, interval int, bunch int, dscp int, certs string) error {
 
-	// log.Println("H2QUIC client test...")
-	versions := quic.SupportedVersions
-	versions = append([]quic.VersionNumber{quic.VersionTLS}, versions...)
+	tlsClientConfig, err := common.ClientTLSConfig("")
+	if err != nil {
+		return err
+	}
 
-	roundTripper := &h2quic.RoundTripper{
-		QuicConfig: &quic.Config{Versions: versions},
+	roundTripper := &http3.RoundTripper{
+		TLSClientConfig: tlsClientConfig,
 	}
 	defer roundTripper.Close()
 
@@ -79,7 +80,7 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int, ce
 	time.Sleep(time.Duration(initWait) * time.Second)
 
 	result := common.Result{
-		Protocol: "H2QUIC",
+		Protocol: "HTTP3",
 		Server:   serverAddrStr,
 		Burst:    bunch,
 		Start:    time.Now().Format(time.RFC3339),

@@ -5,9 +5,9 @@ import (
 	// "crypto/tls"
 	// "crypto/x509"
 	"fmt"
-	common "github.com/paaguti/flowsim/common"
 	quic "github.com/lucas-clemente/quic-go"
-	h2quic "github.com/lucas-clemente/quic-go/h2quic"
+	http3 "github.com/lucas-clemente/quic-go/http3"
+	common "github.com/paaguti/flowsim/common"
 	// "io/ioutil"
 	"log"
 	"net"
@@ -82,13 +82,13 @@ func Server(ip string, port int, single bool, tos int, certs string) {
 
 		go func() {
 			bCap := net.JoinHostPort(ip, strconv.Itoa(port))
-			log.Printf("Starting H2QUIC server at %s", bCap)
-			server := h2quic.Server{
+			log.Printf("Starting HTTP3 server at %s", bCap)
+			server := http3.Server{
 				Server: &http.Server{
 					Handler: mux,
 					Addr:    bCap,
 				},
-				QuicConfig: &quic.Config{Versions: quic.SupportedVersions},
+				QuicConfig: &quic.Config{},
 			}
 			certFile := path.Join(certs, "flowsim-server.crt")
 			keyFile := path.Join(certs, "flowsim-server.key")

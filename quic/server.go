@@ -58,7 +58,7 @@ func Server(ip string, port int, single bool, dscp int) error {
 		//
 		// revert to get the spin bit running
 		//
-		sess, err := listener.Accept()
+		sess, err := listener.Accept(context.Background())
 
 		if common.FatalError(err) != nil {
 			return err
@@ -76,7 +76,7 @@ func quicHandler(sess quic.Session) error {
 	fmt.Println("Entering quicHandler")
 	//
 	// This is for the latest version of quic-go
-	stream, err := session.OpenStreamSync(context.Background())
+	stream, err := sess.OpenStreamSync(context.Background())
 
 	if common.FatalError(err) != nil {
 		return err

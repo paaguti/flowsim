@@ -38,7 +38,8 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 
 	var config *quic.Config
 
-	config = &quic.Config{Versions: []quic.VersionNumber{quic.VersionGQUIC39}}
+	// config = &quic.Config{Versions: []quic.VersionNumber{quic.VersionGQUIC39}}
+	config = &quic.Config{}
 
 	// TODO: include certificate configuration for a better TLS verification
 
@@ -51,7 +52,7 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 	if common.FatalError(err) != nil {
 		return err
 	}
-	defer session.Close(err)
+	defer session.Close()
 
 	// fmt.Printf("Opened session for %s\n", addr)
 	buf := make([]byte, bunch)
