@@ -1,7 +1,7 @@
 package quic
 
 import (
-	// "context"
+	"context"
 	// "crypto/rsa"
 	// "crypto/tls"
 	// "crypto/x509"
@@ -16,12 +16,8 @@ import (
 	"regexp"
 	"strconv"
 
+	quic "github.com/lucas-clemente/quic-go"
 	common "github.com/paaguti/flowsim/common"
-	// use the fork with the Spinbit and VEC implementation
-	// I have forked ferrieux/quic-go to keep a stable copy
-	//
-	// quic "github.com/lucas-clemente/quic-go"
-	quic "github.com/paaguti/quic-go"
 )
 
 // Start a server that echos all data on the first stream opened by the client
@@ -77,15 +73,11 @@ func Server(ip string, port int, single bool, dscp int) error {
 
 func quicHandler(sess quic.Session) error {
 
-	// fmt.Println("Entering quicHandler")
+	fmt.Println("Entering quicHandler")
 	//
 	// This is for the latest version of quic-go
-	// stream, err := session.OpenStreamSync(context.Background())
-	//
-	// revert to get the spin bit running
-	//
+	stream, err := session.OpenStreamSync(context.Background())
 
-	stream, err := sess.AcceptStream()
 	if common.FatalError(err) != nil {
 		return err
 	}

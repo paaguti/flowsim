@@ -1,22 +1,16 @@
 package quic
 
 import (
+	"context"
 	"fmt"
+	quic "github.com/lucas-clemente/quic-go"
+	common "github.com/paaguti/flowsim/common"
 	"io"
 	"log"
 	"math/rand"
 	"net"
 	"strconv"
 	"time"
-	//
-	// use the fork with the Spinbit and VEC implementation
-	// I have forked ferrieux/quic-go to keep a stable version
-	//
-	// quic "github.com/ferrieux/quic-go"
-	common "github.com/paaguti/flowsim/common"
-	quic "github.com/paaguti/quic-go"
-	// "context"
-	// "crypto/tls"
 )
 
 func Client(ip string, port int, iter int, interval int, bunch int, dscp int) error {
@@ -61,12 +55,9 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 
 	// fmt.Printf("Opened session for %s\n", addr)
 	buf := make([]byte, bunch)
-	// This is for the latest version of quic-go
-	// stream, err := session.OpenStreamSync(context.Background())
-	//
-	// revert to get the spin bit running
-	//
-	stream, err := session.OpenStreamSync()
+
+	stream, err := session.OpenStreamSync(context.Background())
+
 	if common.FatalError(err) != nil {
 		return err
 	}
