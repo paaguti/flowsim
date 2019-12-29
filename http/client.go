@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t time.Time, tlsConfig *tls.Config) (*common.Transfer, string) {
+func doTransfer(url string, t time.Time, iter int, tlsConfig *tls.Config) (*common.Transfer, string) {
 	var tr *http.Transport
 	var proto string
 
@@ -39,11 +39,10 @@ func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t t
 	//
 	// Until you get the DSCP right, just make it part of the request
 	//
-	server_url := fmt.Sprintf("%s://%s/flowsim/request?bytes=%d&pass=%d&of=%d&dscp=%d", proto, serverAddr, tsize, iter, total, dscp)
 	//
 	//
 	//
-	req, err := http.NewRequest("GET", server_url, nil)
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
@@ -64,7 +63,7 @@ func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t t
 		log.Fatal("Error reading body. ", err)
 	}
 
-	fmt.Printf("Got %d bytes back\n", len(body))
+	log.Printf("Got %d bytes back\n", len(body))
 	// if len(body) != bunch {
 	// 	log.Fatal(string(body))
 	// }
@@ -75,6 +74,33 @@ func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t t
 		XferBytes: len(body),
 		XferIter:  iter,
 	}, proto
+}
+
+func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t time.Time, tlsConfig *tls.Config) (*common.Transfer, string) {
+	var proto string
+
+	if common.IsSecureConfig(tlsConfig) {
+		proto = "https"
+	} else {
+		proto = "http"
+	}
+	url := fmt.Sprintf("%s://%s/flowsim/request?bytes=%d&pass=%d&of=%d&dscp=%d", proto, serverAddr, tsize, iter, total, dscp)
+
+	return doTransfer(url, t, iter, tlsConfig)
+}
+
+func closeTransfer(serverAddr string, tlsConfig *tls.Config) {
+	var proto string
+
+	if common.IsSecureConfig(tlsConfig) {
+		proto = "https"
+	} else {
+		proto = "http"
+	}
+
+	url := fmt.Sprintf("%s://%s/flowsim/close", proto, serverAddr)
+
+	_, _ = doTransfer(url, time.Now(), -1, tlsConfig)
 }
 
 func Client(ip string, port int, iter int, interval int, bunch int, dscp int, certs string) error {
@@ -125,9 +151,12 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int, ce
 				measure, _ = mkTransfer(serverAddrStr, currIter, iter, bunch, dscp, t, tlsConfig)
 				result.Times[currIter-1] = *measure
 				if currIter >= iter {
+					closeTransfer(serverAddrStr, tlsConfig)
+					log.Println("Client finished... sending done")
 					done <- true
 				}
 			case <-done:
+				log.Println("Client finished...")
 				common.PrintJSon(result)
 				return nil
 			}

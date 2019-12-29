@@ -83,7 +83,7 @@ func init() {
 	clientCmd.PersistentFlags().IntVarP(&clientInterval, "interval", "t", 10, "Interval in secs between bursts")
 	clientCmd.PersistentFlags().StringVarP(&clientBurst, "burst", "N", "1M", "Size of each burst (as x(.xxx)?[kmgtKMGT]?)")
 	clientCmd.PersistentFlags().StringVarP(&clientTos, "TOS", "T", "CS0", "Value of the DSCP field in the IP packets (valid int or DSCP-Id)")
-	clientCmd.PersistentFlags().BoolVarP(&clientQuic, "quic", "Q", false, "Use QUIC (default is TCP)")
+	clientCmd.PersistentFlags().BoolVarP(&clientQuic, "quic", "Q", false, "Use QUIC (default is TCP) ***WIP***")
 	clientCmd.PersistentFlags().BoolVarP(&clientHttp, "http", "H", false, "Use HTTP (default is TCP)")
 	clientCmd.PersistentFlags().BoolVarP(&clientHttps, "https", "S", false, "Use HTTPS (default is TCP)")
 	clientCmd.PersistentFlags().BoolVarP(&clientHttp3, "http3", "3", false, "Use HTTP3 (default is TCP)")

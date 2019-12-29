@@ -44,6 +44,8 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 	// TODO: include certificate configuration for a better TLS verification
 
 	tlsConfig, err := common.ClientTLSConfig("")
+	tlsConfig.NextProtos = []string{"flowsim-quic"}
+
 	if common.FatalError(err) != nil {
 		return err
 	}
@@ -102,7 +104,7 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 func mkTransfer(stream quic.Stream, buf []byte, current int, iter int, t time.Time) *common.Transfer {
 
 	message := fmt.Sprintf("GET %d/%d %d\n", current, iter, len(buf))
-	log.Printf("Client: iteration %d, Sending > %s", current, message)
+	log.Printf("Client: iteration %d, Sending > %s on %v", current, message, stream)
 
 	_, err := stream.Write([]byte(message))
 	if common.FatalError(err) != nil {

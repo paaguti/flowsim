@@ -71,7 +71,7 @@ func init() {
 	serverCmd.PersistentFlags().IntVarP(&serverPort, "port", "p", 8081, "TCP port bound to the flowsim server")
 	serverCmd.PersistentFlags().BoolVarP(&serverSingle, "one-off", "1", false, "Just accept one connection and quit (default is run until killed)")
 	serverCmd.PersistentFlags().StringVarP(&serverTos, "TOS", "T", "CS0", "Value of the DSCP field in the IP layer (number or DSCP id)")
-	serverCmd.PersistentFlags().BoolVarP(&serverQuic, "quic", "Q", false, "Use QUIC (default is TCP)")
+	serverCmd.PersistentFlags().BoolVarP(&serverQuic, "quic", "Q", false, "Use QUIC (default is TCP) ***WIP***")
 	serverCmd.PersistentFlags().BoolVarP(&serverHttp, "http", "H", false, "Use HTTP (default is TCP)")
 	serverCmd.PersistentFlags().BoolVarP(&serverHttps, "https", "S", false, "Use HTTPS (default is TCP)")
 	serverCmd.PersistentFlags().BoolVarP(&serverHttp3, "http3", "3", false, "Use HTTP3 (default is TCP)")

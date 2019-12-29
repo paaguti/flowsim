@@ -2,16 +2,11 @@ package quic
 
 import (
 	"context"
-	// "crypto/rsa"
-	// "crypto/tls"
-	// "crypto/x509"
-	// "encoding/pem"
-	// "math/big"
 	"crypto/rand"
-
-	"bufio"
 	"errors"
 	"fmt"
+	"io"
+	"log"
 	"net"
 	"regexp"
 	"strconv"
@@ -47,6 +42,7 @@ func Server(ip string, port int, single bool, dscp int) error {
 	if common.FatalError(err) != nil {
 		return err
 	}
+	tlsConfig.NextProtos = []string{"flowsim-quic"}
 	listener, err := quic.Listen(conn, tlsConfig, nil)
 	if common.FatalError(err) != nil {
 		return err
@@ -73,7 +69,7 @@ func Server(ip string, port int, single bool, dscp int) error {
 
 func quicHandler(sess quic.Session) error {
 
-	fmt.Println("Entering quicHandler")
+	log.Println("Entering quicHandler")
 	//
 	// This is for the latest version of quic-go
 	stream, err := sess.OpenStreamSync(context.Background())
@@ -81,15 +77,19 @@ func quicHandler(sess quic.Session) error {
 	if common.FatalError(err) != nil {
 		return err
 	}
+	log.Println("Got a stream")
 
-	reader := bufio.NewReader(stream)
+	// reader := bufio.NewReader(stream)
+	cmd := make([]byte, 128)
 	for {
-		// fmt.Println("In server loop")
-		cmd, err := reader.ReadString('\n')
+		// log.Println("In server loop")
+		// cmd, err := reader.ReadString('\n')
+		_, err := io.ReadFull(stream, cmd)
 		if common.FatalError(err) != nil {
 			return err
 		}
-		wbuf, end, err := parseCmd(cmd)
+		log.Printf("In server loop: got %s", cmd)
+		wbuf, end, err := parseCmd(string(cmd))
 		if common.FatalError(err) != nil {
 			return err
 		}
@@ -124,17 +124,17 @@ func matcher(cmd string) (string, string, string, error) {
 * Uses crypto/rand, which is already imported for key handling
  */
 func parseCmd(strb string) ([]byte, bool, error) {
-	fmt.Printf("Server: Got %s", strb)
+	log.Printf("Server: Got %s", strb)
 	iter, total, bunchStr, err := matcher(strb)
 	if err == nil {
 		bunch, _ := strconv.Atoi(bunchStr) // ignore error, wouldn't have parsed the command
 		nb := make([]byte, bunch, bunch)
 		_, err := rand.Read(nb)
 		if err != nil {
-			fmt.Printf("ERROR while filling random buffer: %v\n", err)
+			log.Printf("ERROR while filling random buffer: %v\n", err)
 			return nil, iter == total, err
 		}
-		fmt.Printf("Sending %d bytes\n", len(nb))
+		log.Printf("Sending %d bytes\n", len(nb))
 		return nb, iter == total, err
 	}
 	return nil, false, err
