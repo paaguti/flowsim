@@ -36,21 +36,20 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 		return err
 	}
 
-	var config *quic.Config
+	// var config *quic.Config
 
 	// config = &quic.Config{Versions: []quic.VersionNumber{quic.VersionGQUIC39}}
-	config = &quic.Config{}
+	// config = &quic.Config{}
 
 	// TODO: include certificate configuration for a better TLS verification
 
-	tlsConfig, err := common.ClientTLSConfig("")
-	tlsConfig.NextProtos = []string{"flowsim-quic"}
+	tlsConfig, err := common.ClientTLSConfig("", "flowsim-quic")
 
 	if common.FatalError(err) != nil {
 		return err
 	}
 
-	session, err := quic.Dial(udpConn, updAddr, addr, tlsConfig, config)
+	session, err := quic.Dial(udpConn, updAddr, addr, tlsConfig, nil)
 	if common.FatalError(err) != nil {
 		return err
 	}
@@ -104,13 +103,14 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 func mkTransfer(stream quic.Stream, buf []byte, current int, iter int, t time.Time) *common.Transfer {
 
 	message := fmt.Sprintf("GET %d/%d %d\n", current, iter, len(buf))
-	log.Printf("Client: iteration %d, Sending > %s on %v", current, message, stream)
+	log.Printf("Client: iteration %d, Sending > %s", current, message)
 
 	_, err := stream.Write([]byte(message))
 	if common.FatalError(err) != nil {
 		return nil
 	}
 
+	log.Println("Client: waiting for answer")
 	n, err := io.ReadFull(stream, buf)
 	tDelta := time.Since(t).String()
 

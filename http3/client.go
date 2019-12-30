@@ -82,7 +82,7 @@ func mkTransfer(serverAddr string, iter int, total int, tsize int, dscp int, t t
 
 func Client(ip string, port int, iter int, interval int, bunch int, dscp int, certs string) error {
 
-	tlsClientConfig, err := common.ClientTLSConfig("")
+	tlsClientConfig, err := common.ClientTLSConfig("", "")
 	if err != nil {
 		return err
 	}

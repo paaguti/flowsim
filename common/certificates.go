@@ -16,33 +16,7 @@ import (
 // Setup a bare-bones TLS config for the server
 // Return an empty tls.Config{} on error or empty certs
 
-func ServerTLSConfig(certs string) (*tls.Config, error) {
-	//
-	//  TODO: use flowsimCA.*
-	//
-	// if certs == "" {
-	// 	return &tls.Config{}
-	// }
-	// 	caCertPEM, err := ioutil.ReadFile(path.Join(certs, "flowsimCA.crt"))
-	// 	if FatalErrorln(err, "Reading CA CRT") != nil {
-	// 		return &tls.Config{}
-	// 	}
-	// 	roots := x509.NewCertPool()
-	// 	ok := roots.AppendCertsFromPEM(caCertPEM)
-	// 	if !ok {
-	// 		panic("Failed to parce root certificate")
-	// 	}
-	// 	cert, err := tls.LoadX509KeyPair(path.Join(certs, "flowsim-server.crt"),
-	// 		path.Join(certs, "flowsim-server.key"))
-	// 	if FatalError(err) != nil {
-	// 		return &tls.Config{}
-	// 	}
-	// 	return &tls.Config{
-	// 		Certificates: []tls.Certificate{cert},
-	// 		ClientAuth:   tls.RequireAndVerifyClientCert,
-	// 		ClientCAs:    roots,
-	// 	}
-	//
+func ServerTLSConfig(certs string, nextProto string) (*tls.Config, error) {
 	// Setup a bare-bones TLS config for the server
 	log.Printf("Generating barebones TlSConfig for server, ignoring directory '%s'", certs)
 	key, err := rsa.GenerateKey(rand.Reader, 1024)
@@ -61,39 +35,48 @@ func ServerTLSConfig(certs string) (*tls.Config, error) {
 	if FatalError(err) != nil {
 		return nil, err
 	}
-	return &tls.Config{
-		Certificates: []tls.Certificate{tlsCert},
-	}, nil
+	if nextProto == "" {
+		return &tls.Config{
+			Certificates: []tls.Certificate{tlsCert},
+		}, nil
+	} else {
+		return &tls.Config{
+			Certificates: []tls.Certificate{tlsCert},
+			NextProtos:   []string{nextProto},
+		}, nil
+	}
 }
 
 // Create a barebones minimum TLS configuration for the client
 
-func ClientTLSConfig(certs string) (*tls.Config, error) {
+func ClientTLSConfig(certs string, nextProto string) (*tls.Config, error) {
 	log.Printf("Ignoring directory '%s' for barebones TLS config", certs)
 	// log.Println("H2QUIC client test...")
 	pool, err := x509.SystemCertPool()
 	if err != nil {
 		return nil, err
 	}
-	return &tls.Config{
-		RootCAs:            pool,
-		InsecureSkipVerify: true,
-	}, nil
+
+	if nextProto == "" {
+		return &tls.Config{
+			RootCAs:            pool,
+			InsecureSkipVerify: true,
+		}, nil
+	} else {
+		return &tls.Config{
+			RootCAs:            pool,
+			InsecureSkipVerify: true,
+			NextProtos:         []string{nextProto},
+		}, nil
+	}
 }
 
 // For HTTPS
 
 func HttpsServerTLSConfig(certs string) (*tls.Config, error) {
 	log.Printf("HttpsServerTLSConfig(%s)", certs)
-	// caCert, err := ioutil.ReadFile(path.Join(certs, "flowsim-client.crt"))
-	// if err != nil {
-	// 	return nil, FatalError(err)
-	// }
-	// caCertPool := x509.NewCertPool()
-	// caCertPool.AppendCertsFromPEM(caCert)
+
 	return &tls.Config{
-		// ClientAuth: tls.RequireAndVerifyClientCert,
-		// ClientCAs:  caCertPool,
 		ClientAuth: tls.RequestClientCert,
 	}, nil
 }
@@ -101,30 +84,12 @@ func HttpsServerTLSConfig(certs string) (*tls.Config, error) {
 func HttpsClientTLSConfig(certs string) (*tls.Config, error) {
 	log.Printf("HttpsClientTLSConfig(%s)", certs)
 
-	// caCert, err := ioutil.ReadFile(path.Join(certs, "flowsim-server.crt"))
-	// if err != nil {
-	// 	return nil, FatalError(err)
-	// }
-	// caCertPool := x509.NewCertPool()
-	// caCertPool.AppendCertsFromPEM(caCert)
-	// cert, err := tls.LoadX509KeyPair(path.Join(certs, "flowsim-client.crt"), path.Join(certs, "flowsim-client.key"))
-	// if err != nil {
-	// 	return nil, FatalError(err)
-	// }
-
-	// return &tls.Config{
-	// 	RootCAs:      caCertPool,
-	// 	Certificates: []tls.Certificate{cert},
-	// }, nil
 	return &tls.Config{InsecureSkipVerify: true}, nil
 }
 
 func IsSecureConfig(tlsConfig *tls.Config) bool {
-	// log.Printf("IsSecureConfig(%v)\n", *tlsConfig)
-	// log.Printf("  .InsecureSkipVerify(%v)\n", tlsConfig.InsecureSkipVerify)
 
 	if tlsConfig.InsecureSkipVerify == true {
-		// log.Printf(" %v is secure", *tlsConfig)
 		return true
 	}
 	if tlsConfig.Certificates != nil {

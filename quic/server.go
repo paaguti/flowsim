@@ -1,11 +1,11 @@
 package quic
 
 import (
+	"bufio"
 	"context"
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"regexp"
@@ -38,11 +38,11 @@ func Server(ip string, port int, single bool, dscp int) error {
 	// TODO:
 	//   Include certificate directory handling ("/etc") is just a dummy
 	//
-	tlsConfig, err := common.ServerTLSConfig("/etc")
+	tlsConfig, err := common.ServerTLSConfig("/etc", "flowsim-quic")
 	if common.FatalError(err) != nil {
 		return err
 	}
-	tlsConfig.NextProtos = []string{"flowsim-quic"}
+
 	listener, err := quic.Listen(conn, tlsConfig, nil)
 	if common.FatalError(err) != nil {
 		return err
@@ -70,21 +70,18 @@ func Server(ip string, port int, single bool, dscp int) error {
 func quicHandler(sess quic.Session) error {
 
 	log.Println("Entering quicHandler")
-	//
-	// This is for the latest version of quic-go
-	stream, err := sess.OpenStreamSync(context.Background())
+
+	stream, err := sess.AcceptStream(context.Background())
 
 	if common.FatalError(err) != nil {
 		return err
 	}
 	log.Println("Got a stream")
 
-	// reader := bufio.NewReader(stream)
-	cmd := make([]byte, 128)
+	reader := bufio.NewReader(stream)
 	for {
-		// log.Println("In server loop")
-		// cmd, err := reader.ReadString('\n')
-		_, err := io.ReadFull(stream, cmd)
+		log.Println("In server loop")
+		cmd, err := reader.ReadString('\n')
 		if common.FatalError(err) != nil {
 			return err
 		}
@@ -98,10 +95,9 @@ func quicHandler(sess quic.Session) error {
 			return err
 		}
 		if end {
-			break
+			return nil
 		}
 	}
-	return err
 }
 
 // From flowsim TCP
