@@ -110,7 +110,7 @@ func mkTransfer(stream quic.Stream, buf []byte, current int, iter int, t time.Ti
 		return nil
 	}
 
-	log.Println("Client: waiting for answer")
+	// log.Println("Client: waiting for answer")
 	n, err := io.ReadFull(stream, buf)
 	tDelta := time.Since(t).String()
 

@@ -80,7 +80,7 @@ func quicHandler(sess quic.Session) error {
 
 	reader := bufio.NewReader(stream)
 	for {
-		log.Println("In server loop")
+		// log.Println("In server loop")
 		cmd, err := reader.ReadString('\n')
 		if common.FatalError(err) != nil {
 			return err
@@ -120,7 +120,7 @@ func matcher(cmd string) (string, string, string, error) {
 * Uses crypto/rand, which is already imported for key handling
  */
 func parseCmd(strb string) ([]byte, bool, error) {
-	log.Printf("Server: Got %s", strb)
+	// log.Printf("Server: Got %s", strb)
 	iter, total, bunchStr, err := matcher(strb)
 	if err == nil {
 		bunch, _ := strconv.Atoi(bunchStr) // ignore error, wouldn't have parsed the command
