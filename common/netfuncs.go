@@ -10,6 +10,15 @@ import (
 	"net"
 )
 
+func SetTos(conn net.Conn, dscp int) error {
+	err := ipv4.NewConn(conn).SetTOS(dscp)
+	if err != nil {
+		// common.WarnErrorf(err, "while setting TOS")
+		err = ipv6.NewConn(conn).SetTrafficClass(dscp)
+	}
+	return err
+}
+
 func SetTcpTos(conn *net.TCPConn, dscp int) error {
 	err := ipv4.NewConn(conn).SetTOS(dscp)
 	if err != nil {
