@@ -27,6 +27,8 @@ github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NH
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/lucas-clemente/aes12 v0.0.0-20171027163421-cd47fb39b79f h1:sSeNEkJrs+0F9TUau0CgWTTNEwF23HST3Eq0A+QIx+A=
 github.com/lucas-clemente/aes12 v0.0.0-20171027163421-cd47fb39b79f/go.mod h1:JpH9J1c9oX6otFSgdUHwUBUizmKlrMjxWnIAjff4m04=
+github.com/lucas-clemente/quic-go v0.14.0 h1:xmWt9+sRgvAAXmi2S9lrikUtNUPwxeOy400LD+I3Qw0=
+github.com/lucas-clemente/quic-go v0.14.0/go.mod h1:Vn3/Fb0/77b02SGhQk36KzOUmXgVpFfizUfW5WMaqyU=
 github.com/lucas-clemente/quic-go v0.14.1 h1:c1aKoBZKOPA+49q96B1wGkibyPP0AxYh45WuAoq+87E=
 github.com/lucas-clemente/quic-go v0.14.1/go.mod h1:Vn3/Fb0/77b02SGhQk36KzOUmXgVpFfizUfW5WMaqyU=
 github.com/lucas-clemente/quic-go-certificates v0.0.0-20160823095156-d2f86524cced h1:zqEC1GJZFbGZA0tRyNZqRjep92K5fujFtFsu5ZW7Aug=

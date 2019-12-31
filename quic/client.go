@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"net"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -115,11 +116,14 @@ func mkTransfer(stream quic.Stream, buf []byte, current int, iter int, t time.Ti
 	tDelta := time.Since(t).String()
 
 	common.FatalError(err)
-	log.Printf("Client: Got %d bytes back\n", n)
+	log.Printf("Client: Got %d bytes back", n)
+
+	generators := strings.Split(string(buf), "\n")[0]
 	return &common.Transfer{
 		XferStart: t.Format(time.RFC3339),
 		XferTime:  tDelta,
 		XferBytes: n,
 		XferIter:  current,
+		Generator: generators[2:],
 	}
 }

@@ -5,6 +5,7 @@ type Transfer struct {
 	XferTime  string
 	XferBytes int
 	XferIter  int
+	Generator string
 }
 
 type Result struct {

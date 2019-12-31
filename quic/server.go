@@ -2,14 +2,17 @@ package quic
 
 import (
 	"bufio"
+	"bytes"
 	"context"
-	"crypto/rand"
+	// "crypto/rand"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"regexp"
 	"strconv"
+	"time"
 
 	quic "github.com/lucas-clemente/quic-go"
 	common "github.com/paaguti/flowsim/common"
@@ -34,34 +37,28 @@ func Server(ip string, port int, single bool, dscp int) error {
 		return err
 	}
 
-	//
-	// TODO:
-	//   Include certificate directory handling ("/etc") is just a dummy
-	//
 	tlsConfig, err := common.ServerTLSConfig("/etc", "flowsim-quic")
 	if common.FatalError(err) != nil {
 		return err
 	}
 
 	listener, err := quic.Listen(conn, tlsConfig, nil)
+	defer listener.Close()
 	if common.FatalError(err) != nil {
 		return err
 	}
 
 	for {
-		// This is for the latest version of quic-go
-		// stream, err := session.OpenStreamSync(context.Background())
-		//
-		// revert to get the spin bit running
-		//
+
 		sess, err := listener.Accept(context.Background())
 
 		if common.FatalError(err) != nil {
 			return err
 		}
 		if single {
-			quicHandler(sess)
-			return nil
+			err = quicHandler(sess)
+			time.Sleep(500 * time.Millisecond)
+			return err
 		}
 		go quicHandler(sess)
 	}
@@ -76,28 +73,35 @@ func quicHandler(sess quic.Session) error {
 	if common.FatalError(err) != nil {
 		return err
 	}
+	// defer stream.Close()
 	log.Println("Got a stream")
+	msgbuf := make([]byte, 128)
+	reader := bufio.NewReaderSize(stream, 128)
+	for end := false; !end; {
+		log.Println("In server loop")
+		n, err := reader.Read(msgbuf)
+		common.FatalError(err)
+		if err != nil {
+			if end == true {
+				log.Println("Bye!")
+				return nil
+			}
+			return err
+		}
 
-	reader := bufio.NewReader(stream)
-	for {
-		// log.Println("In server loop")
-		cmd, err := reader.ReadString('\n')
+		log.Printf("In server loop: got %d bytes: %s", n, msgbuf)
+		wbuf, _end, err := parseCmd(string(msgbuf))
 		if common.FatalError(err) != nil {
 			return err
 		}
-		log.Printf("In server loop: got %s", cmd)
-		wbuf, end, err := parseCmd(string(cmd))
-		if common.FatalError(err) != nil {
-			return err
-		}
-		_, err = stream.Write(wbuf)
-		if common.FatalError(err) != nil {
-			return err
-		}
-		if end {
-			return nil
+		end = _end
+		_, err = io.Copy(stream, bytes.NewBuffer(wbuf))
+		if common.FatalError(err) == nil {
+			log.Println("Sent bytes")
 		}
 	}
+	time.Sleep(1 * time.Second)
+	return nil
 }
 
 // From flowsim TCP
@@ -124,8 +128,7 @@ func parseCmd(strb string) ([]byte, bool, error) {
 	iter, total, bunchStr, err := matcher(strb)
 	if err == nil {
 		bunch, _ := strconv.Atoi(bunchStr) // ignore error, wouldn't have parsed the command
-		nb := make([]byte, bunch, bunch)
-		_, err := rand.Read(nb)
+		nb := common.RandBytes(bunch)
 		if err != nil {
 			log.Printf("ERROR while filling random buffer: %v\n", err)
 			return nil, iter == total, err
@@ -135,26 +138,3 @@ func parseCmd(strb string) ([]byte, bool, error) {
 	}
 	return nil, false, err
 }
-
-// Setup a bare-bones TLS config for the server (moded to)
-// common.ServerTLSConfig(certs string) *tls.Config
-//
-// func generateTLSConfig() *tls.Config {
-// 	key, err := rsa.GenerateKey(rand.Reader, 1024)
-// 	if common.FatalError(err) != nil {
-// 		return nil
-// 	}
-// 	template := x509.Certificate{SerialNumber: big.NewInt(1)}
-// 	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, &key.PublicKey, key)
-// 	if common.FatalError(err) != nil {
-// 		return nil
-// 	}
-// 	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
-// 	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
-
-// 	tlsCert, err := tls.X509KeyPair(certPEM, keyPEM)
-// 	if common.FatalError(err) != nil {
-// 		return nil
-// 	}
-// 	return &tls.Config{Certificates: []tls.Certificate{tlsCert}}
-// }
