@@ -11,10 +11,7 @@ var rootCmd = &cobra.Command{
 	Use:   "flowsim",
 	Short: "A UDP/TCP/HTTP/QUIC server/client to simulate ABR traffic",
 	Long: `A UDP/TCP/HTTP/QUIC server/client to simulate ABR traffic in one app.
-Follows the iperf3 way of life integrating both server and client
-
-This version is based on an older fork of the lucas-clemente/quic-go code
-that supports the spin bit`,
+Follows the iperf3 way of life integrating both server and client`,
 }
 
 func Execute() {
