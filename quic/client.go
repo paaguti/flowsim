@@ -53,7 +53,10 @@ func Client(ip string, port int, iter int, interval int, bunch int, dscp int) er
 	if common.FatalError(err) != nil {
 		return err
 	}
-	defer session.Close()
+	// TODO: check this:
+	//  quic/client.go:56:15:
+	//  session.Close undefined (type quic.Session has no field or method Close)
+	// defer session.Close()
 
 	// fmt.Printf("Opened session for %s\n", addr)
 	buf := make([]byte, bunch)
